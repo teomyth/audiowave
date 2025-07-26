@@ -1,0 +1,67 @@
+{
+  "name": "audiowave-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A focused, high-performance real-time audio visualization library for React applications",
+  "keywords": [
+    "react",
+    "audio",
+    "visualization",
+    "waveform",
+    "real-time",
+    "canvas"
+  ],
+  "author": "teomyth <teomyth@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/teomyth/audiowave.git"
+  },
+  "workspaces": [
+    "packages/react",
+    "packages/electron"
+  ],
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm -r dev",
+
+    "test": "pnpm -r test",
+    "test:coverage": "pnpm --filter @audiowave/react test:coverage",
+    "test:watch": "pnpm --filter @audiowave/react test:watch",
+    "test:ui": "pnpm --filter @audiowave/react test:ui",
+    "lint": "biome check .",
+    "lint:fix": "biome check --apply .",
+    "format": "biome format --write .",
+    "type-check": "pnpm -r type-check",
+    "clean": "pnpm -r clean && rm -rf dist .tsbuildinfo",
+    "clean:all": "pnpm -r clean && rm -rf node_modules dist .tsbuildinfo && pnpm store prune",
+
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:publish": "changeset publish",
+    "release:emergency": "echo '⚠️  WARNING: This will conflict with GitHub Actions! Use only in emergencies.' && pnpm changeset:version && pnpm changeset:publish",
+    "prepare": "husky",
+    "demo:web": "cd examples/web && npm run dev",
+    "demo:electron": "cd examples/electron && pnpm run dev"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,md}": [
+      "biome check --write",
+      "biome format --write"
+    ]
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.1.2",
+    "@changesets/cli": "^2.29.5",
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@10.13.1"
+}

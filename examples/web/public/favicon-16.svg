@@ -1,0 +1,15 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified audio wave bars - centered around middle line -->
+  <g transform="translate(1, 8)">
+    <!-- Bar 1 - height 4, centered around y=0 -->
+    <rect x="1" y="-2" width="2" height="4" rx="1" fill="#00bcd4"/>
+    <!-- Bar 2 - height 8, centered around y=0 -->
+    <rect x="4" y="-4" width="2" height="8" rx="1" fill="#00bcd4"/>
+    <!-- Bar 3 - height 6, centered around y=0 -->
+    <rect x="7" y="-3" width="2" height="6" rx="1" fill="#00bcd4"/>
+    <!-- Bar 4 - height 10, centered around y=0 -->
+    <rect x="10" y="-5" width="2" height="10" rx="1" fill="#00bcd4"/>
+    <!-- Bar 5 - height 5, centered around y=0 -->
+    <rect x="13" y="-2.5" width="2" height="5" rx="1" fill="#00bcd4"/>
+  </g>
+</svg>

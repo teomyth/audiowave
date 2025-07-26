@@ -1,0 +1,352 @@
+# @audiowave/react
+
+**Lightweight React components for real-time audio visualization**
+
+## Inspiration and Key Differences
+
+This project is inspired by [react-audio-visualizer](https://github.com/Wolfy64/react-audio-visualize) but takes a different, more focused approach:
+
+**What makes us different:**
+- **Visualization only** - No built-in playback or recording functionality
+- **No control buttons** - Pure visualization components without UI controls
+- **Lightweight** - Minimal bundle size with focused feature set
+- **Easy integration** - Drop into existing audio applications without conflicts
+- **Flexible** - Works with any audio source you provide
+
+**Perfect for these scenarios:**
+- **Existing audio apps** - Add visualization to apps that already handle audio
+- **Recording software** - Visualize microphone input without audio conflicts
+- **Music players** - Add waveforms to audio/video playback
+- **Custom audio workflows** - Integrate with any audio source or processing pipeline
+- **Lightweight projects** - Minimal bundle size when you only need visualization
+
+## Installation
+
+```bash
+npm install @audiowave/react
+```
+
+## Quick Start
+
+**Basic usage with microphone input:**
+
+```tsx
+import { AudioWave, useAudioSource } from '@audiowave/react';
+import { useRef, useState } from 'react';
+
+export default function App() {
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+
+  // AudioWave handles visualization, you control the audio source
+  const { source, error } = useAudioSource({ source: mediaStream });
+  const audioWaveRef = useRef<AudioWaveController>(null);
+
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    setMediaStream(stream);
+    setIsRecording(true);
+  };
+
+  const stopRecording = () => {
+    mediaStream?.getTracks().forEach(track => track.stop());
+    setMediaStream(null);
+    setIsRecording(false);
+  };
+
+  return (
+    <div>
+      {error && <div>Error: {error.message}</div>}
+      <AudioWave ref={audioWaveRef} source={source} height={100} />
+
+      {/* You provide the controls - AudioWave just visualizes */}
+      <button onClick={isRecording ? stopRecording : startRecording}>
+        {isRecording ? 'Stop Recording' : 'Start Recording'}
+      </button>
+
+      {/* Optional: Control visualization display */}
+      <button onClick={() => audioWaveRef.current?.pause()}>Pause Waveform</button>
+      <button onClick={() => audioWaveRef.current?.resume()}>Resume Waveform</button>
+      <button onClick={() => audioWaveRef.current?.clear()}>Clear Waveform</button>
+    </div>
+  );
+}
+```
+
+**Works with any audio source:**
+
+```tsx
+// With audio file
+const audioElement = useRef<HTMLAudioElement>(null);
+const { source } = useAudioSource({ source: audioElement.current });
+
+// With video file
+const videoElement = useRef<HTMLVideoElement>(null);
+const { source } = useAudioSource({ source: videoElement.current });
+
+// With Web Audio API nodes
+const { source } = useAudioSource({ source: audioNode });
+```
+
+## API Reference
+
+### AudioWave Component
+
+The main visualization component - pure display, no audio control.
+
+```tsx
+<AudioWave
+  // === AUDIO SOURCE ===
+  source={source}            // AudioSource from useAudioSource
+
+  // === DIMENSIONS ===
+  width="100%"               // Component width (string | number)
+  height={200}               // Component height in pixels
+
+  // === VISUAL STYLING ===
+  backgroundColor="transparent" // Background color
+  barColor="#ffffff"         // Primary bar color
+  secondaryBarColor="#5e5e5e" // Secondary/inactive bar color
+  barWidth={2}               // Width of each frequency bar
+  gap={1}                    // Gap between bars in pixels
+  rounded={0}                // Border radius for rounded bars
+
+  // === BORDER STYLING ===
+  showBorder={false}         // Show border around visualization
+  borderColor="#333333"      // Border color
+  borderWidth={1}            // Border width in pixels
+  borderRadius={0}           // Border radius for rounded corners
+
+  // === ANIMATION & RENDERING ===
+  speed={3}                  // Animation speed (1-6, higher = slower)
+  animateCurrentPick={true}  // Enable smooth bar transitions
+  fullscreen={false}         // Fill entire parent container
+  onlyActive={false}         // Show visualization only when active
+  gain={1.0}                 // Audio gain multiplier (0.1-10.0, default: 1.0)
+
+  // === STATE CONTROL ===
+  isPaused={false}           // Pause visualization (freeze display)
+
+  // === ADVANCED CUSTOMIZATION ===
+  customRenderer={(context) => {
+    // Custom rendering function for advanced visualizations
+    // context: { canvas, audioData, width, height, ... }
+  }}
+
+  // === PLACEHOLDER CONTENT ===
+  placeholder={<div>No audio source</div>} // Custom placeholder content
+  showPlaceholderBackground={true}         // Show background in placeholder state
+
+  // === CSS CLASSES ===
+  className="my-waveform"    // CSS class for main container
+  canvasClassName="my-canvas" // CSS class for canvas element
+
+  // === CALLBACKS ===
+  onStateChange={(state) => console.log('State:', state)} // State change callback
+  onRenderStart={() => console.log('Rendering started')}  // Render start callback
+  onRenderStop={() => console.log('Rendering stopped')}   // Render stop callback
+  onError={(error) => console.error('Error:', error)}     // Error callback
+/>
+```
+
+#### Essential Props
+
+**Audio Source:**
+- `source` - AudioSource from `useAudioSource` hook (required for visualization)
+
+**Dimensions:**
+- `width` - Component width, supports CSS units and numbers (default: `"100%"`)
+- `height` - Component height in pixels (default: `200`)
+
+**Visual Styling:**
+- `backgroundColor` - Background color (default: `"transparent"`)
+- `barColor` - Primary color for active audio bars (default: `"#ffffff"`)
+- `secondaryBarColor` - Color for inactive/past bars (default: `"#5e5e5e"`)
+- `barWidth` - Width of each frequency bar in pixels (default: `2`)
+- `gap` - Gap between bars in pixels (default: `1`)
+- `rounded` - Border radius for rounded bars (default: `0`)
+
+#### Advanced Props
+
+**Border Styling:**
+- `showBorder` - Show border around visualization area (default: `false`)
+- `borderColor` - Border color (default: `"#333333"`)
+- `borderWidth` - Border width in pixels (default: `1`)
+- `borderRadius` - Border radius for rounded corners (default: `0`)
+
+**Animation & Rendering:**
+- `speed` - Animation speed from 1-6, higher numbers are slower (default: `3`)
+- `animateCurrentPick` - Enable smooth bar transitions (default: `true`)
+- `fullscreen` - Fill entire parent container (default: `false`)
+- `onlyActive` - Show visualization only when audio is active (default: `false`)
+
+**State Control:**
+- `isPaused` - Pause visualization display without affecting audio (default: `false`)
+
+**Advanced Customization:**
+- `customRenderer` - Custom rendering function for advanced visualizations
+- `placeholder` - Custom React component to show when no audio source
+- `showPlaceholderBackground` - Whether to show background in placeholder state
+
+**CSS Classes:**
+- `className` - CSS class for the main container
+- `canvasClassName` - CSS class for the canvas element
+
+**Event Callbacks:**
+- `onStateChange` - Called when visualization state changes
+- `onRenderStart` - Called when rendering starts
+- `onRenderStop` - Called when rendering stops
+- `onError` - Called on render errors
+
+### useAudioSource Hook
+
+Converts any audio source into visualization data.
+
+```tsx
+const { source, error } = useAudioSource({
+  source: mediaStream  // MediaStream | HTMLAudioElement | HTMLVideoElement | AudioNode
+});
+```
+
+**Supported Sources:**
+- `MediaStream` - Microphone, recording software
+- `HTMLAudioElement` - Audio files
+- `HTMLVideoElement` - Video files
+- `AudioNode` - Web Audio API nodes
+
+**Returns:**
+- `source` - AudioSource instance for AudioWave component
+- `error` - Any processing errors (Error | null)
+
+### Specialized Hooks
+
+For better type safety and convenience, you can use specialized hooks:
+
+```tsx
+// For microphone or recording software
+const { source, error } = useMediaStreamSource(mediaStream);
+
+// For audio/video files
+const { source, error } = useMediaElementSource(audioElement);
+
+// For Web Audio API nodes
+const { source, error } = useAudioNodeSource(audioNode);
+```
+
+## Visualization Control
+
+AudioWave provides simple controls for the visualization display (not the audio itself):
+
+### Using Ref (Imperative)
+
+```tsx
+const audioWaveRef = useRef<AudioWaveController>(null);
+
+// Basic visualization controls
+audioWaveRef.current?.pause();  // Freeze display
+audioWaveRef.current?.resume(); // Resume display
+audioWaveRef.current?.clear();  // Clear waveform data
+
+// State inspection methods
+const isPaused = audioWaveRef.current?.isPaused(); // Check if paused
+const state = audioWaveRef.current?.getState();    // Get current state: 'idle' | 'visualizing' | 'paused'
+const audioData = audioWaveRef.current?.getAudioData(); // Get current audio data (Uint8Array)
+```
+
+#### AudioWaveController Methods
+
+**Control Methods:**
+- `pause()` - Pause visualization (freeze waveform display)
+- `resume()` - Resume visualization from paused state
+- `clear()` - Clear all waveform data and reset display
+
+**State Methods:**
+- `isPaused()` - Returns boolean indicating if visualization is paused
+- `getState()` - Returns current state: `'idle'` | `'visualizing'` | `'paused'`
+- `getAudioData()` - Returns current audio data as Uint8Array
+
+### Using Props (Declarative)
+
+```tsx
+const [isPaused, setIsPaused] = useState(false);
+
+<AudioWave
+  source={source}
+  isPaused={isPaused}  // Control via props
+/>
+```
+
+**Important:** These controls only affect the visualization display, not your audio source.
+
+## Best Practices
+
+### Error Handling
+
+```tsx
+const { source, error } = useAudioSource({ source: mediaStream });
+
+if (error) {
+  return <div>Visualization error: {error.message}</div>;
+}
+```
+
+### Performance
+
+```tsx
+// Memoize audio source to prevent unnecessary re-renders
+const { source } = useAudioSource({
+  source: mediaStream,
+  onError: useCallback((error) => {
+    console.error('Audio error:', error);
+  }, [])
+});
+
+// Memoize AudioWave props for better performance
+const audioWaveProps = useMemo(() => ({
+  source,
+  height: 200,
+  barWidth: 2,
+  gap: 1,
+  backgroundColor: 'transparent',
+  barColor: '#ffffff'
+}), [source]);
+
+return <AudioWave {...audioWaveProps} />;
+```
+
+### Responsive Design
+
+```tsx
+<AudioWave
+  source={source}
+  width="100%"
+  height={window.innerWidth < 768 ? 80 : 120}
+  style={{ maxWidth: '100%' }}
+/>
+```
+
+## TypeScript Support
+
+Full TypeScript support with comprehensive types:
+
+```tsx
+import type {
+  AudioWaveProps,
+  AudioWaveController,
+  AudioSource,
+  UseAudioSourceOptions
+} from '@audiowave/react';
+```
+
+## Browser Support
+
+- Chrome 66+ (March 2018)
+- Firefox 60+ (May 2018)
+- Safari 14+ (September 2020)
+- Edge 79+ (January 2020)
+
+Requires Web Audio API and MediaStream API support.
+
+## License
+
+MIT © [teomyth](https://github.com/teomyth)
