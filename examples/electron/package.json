@@ -24,7 +24,9 @@
     "@audiowave/react": "workspace:*",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
-    "@audiowave/web-example": "workspace:*",
+    "@audiowave/web-example": "workspace:*"
+  },
+  "optionalDependencies": {
     "naudiodon2": "github:nextliveab/naudiodon2"
   },
   "devDependencies": {
