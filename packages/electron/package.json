@@ -1,6 +1,6 @@
 {
   "name": "@audiowave/electron",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Electron audio source for AudioWave - main and renderer process support",
   "keywords": [
     "electron",
@@ -43,7 +43,6 @@
     "build": "npm run build:main && npm run build:renderer",
     "build:main": "tsc -p tsconfig.main.json",
     "build:renderer": "vite build",
-
     "dev": "npm run dev:main & npm run dev:renderer",
     "dev:main": "tsc -p tsconfig.main.json --watch",
     "dev:renderer": "vite build --watch",
