@@ -39,6 +39,7 @@ export default function App() {
   const [isRecording, setIsRecording] = useState(false);
 
   // AudioWave handles visualization, you control the audio source
+  // Note: For dynamic audio sources, memoize the options object (see Important Usage Notes)
   const { source, error } = useAudioSource({ source: mediaStream });
   const audioWaveRef = useRef<AudioWaveController>(null);
 
@@ -208,6 +209,8 @@ const { source, error } = useAudioSource({
 });
 ```
 
+> **⚠️ Important:** When using lazy-loaded audio sources (starting as `null`), you must memoize the options object to prevent flickering. See [Important Usage Notes](#important-usage-notes) for details.
+
 **Supported Sources:**
 - `MediaStream` - Microphone, recording software
 - `HTMLAudioElement` - Audio files
@@ -290,17 +293,89 @@ if (error) {
 }
 ```
 
-### Performance
+### Important Usage Notes
+
+#### Lazy Loading Audio Sources (Required for Proper Functionality)
+
+When your audio source starts as `null` and is set later (common in user-initiated scenarios), you **must** memoize the `useAudioSource` options. Without this, the visualization will flicker and restart continuously, making it unusable:
+
+**❌ WRONG - This will cause flickering:**
 
 ```tsx
-// Memoize audio source to prevent unnecessary re-renders
-const { source } = useAudioSource({
-  source: mediaStream,
-  onError: useCallback((error) => {
-    console.error('Audio error:', error);
-  }, [])
-});
+function MyAudioApp() {
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
+  // This creates a new options object on every render!
+  const { source } = useAudioSource({
+    source: mediaStream,
+    onError: (error) => console.error('Audio error:', error)
+  });
+
+  // ... rest of component
+}
+```
+
+**✅ CORRECT - Memoize the options object:**
+
+```tsx
+function MyAudioApp() {
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+
+  // Step 1: Memoize the onError callback
+  const handleAudioError = useCallback((error: Error) => {
+    console.error('Audio error:', error);
+  }, []);
+
+  // Step 2: Memoize the entire options object
+  const audioSourceOptions = useMemo(() => ({
+    source: mediaStream,
+    onError: handleAudioError,
+  }), [mediaStream, handleAudioError]);
+
+  // Step 3: Use the memoized options
+  const { source } = useAudioSource(audioSourceOptions);
+
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    setMediaStream(stream); // This triggers re-render with new source
+  };
+
+  return (
+    <div>
+      <button onClick={startRecording}>Start Recording</button>
+      <AudioWave source={source} />
+    </div>
+  );
+}
+```
+
+**Why is this required?**
+- Each render creates a new options object `{ source: mediaStream, onError: ... }`
+- `useAudioSource` sees this as a "change" and reinitializes the audio processing
+- This causes the visualization to flicker and restart repeatedly, making it unusable
+- This is not a performance issue - it's a functional requirement for proper operation
+
+**Quick Reference - Copy this pattern:**
+
+```tsx
+// Always use this pattern for lazy-loaded audio sources
+const handleError = useCallback((error: Error) => {
+  console.error('Audio error:', error);
+}, []);
+
+const options = useMemo(() => ({
+  source: yourAudioSource, // MediaStream | HTMLAudioElement | etc.
+  onError: handleError,
+}), [yourAudioSource, handleError]);
+
+const { source } = useAudioSource(options);
+```
+
+### Performance Optimization
+
+#### Memoizing Component Props
+
+```tsx
 // Memoize AudioWave props for better performance
 const audioWaveProps = useMemo(() => ({
   source,

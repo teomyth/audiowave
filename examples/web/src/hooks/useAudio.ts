@@ -1,13 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { type AudioSource, type AudioSourceInput, useAudioSource } from '@audiowave/react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AudioProcessingOptions } from '../types/audioProcessing';
-
-// Define the AudioSource interface locally to avoid using 'any'
-// This matches the standard AudioSource interface from the new architecture
-interface AudioSource {
-  getAudioData(): Uint8Array | null;
-  isActive(): boolean;
-  destroy?(): void; // Optional cleanup method
-}
 
 export type AudioSourceType = 'microphone' | 'audioFile' | 'audioUrl';
 export type AudioStatus = 'idle' | 'active' | 'paused';
@@ -50,22 +43,35 @@ export interface UseAudioReturn extends AudioState, AudioActions {}
  */
 export function useAudio(): UseAudioReturn {
   const [status, setStatus] = useState<AudioStatus>('idle');
-  const [audioSource, setAudioSource] = useState<AudioSource | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sourceType, setSourceType] = useState<AudioSourceType>('microphone');
-  const webAudioSourceRef = useRef<AudioSource | null>(null);
+
+  // Raw audio source state (MediaStream, HTMLAudioElement, etc.)
+  const [rawAudioSource, setRawAudioSource] = useState<AudioSourceInput>(null);
+
+  // Memoize the onError callback to prevent unnecessary re-initializations
+  const handleAudioSourceError = useCallback((err: Error) => {
+    setError(err.message);
+  }, []);
+
+  // Memoize the useAudioSource options to prevent unnecessary re-initializations
+  const audioSourceOptions = useMemo(
+    () => ({
+      source: rawAudioSource,
+      onError: handleAudioSourceError,
+    }),
+    [rawAudioSource, handleAudioSourceError]
+  );
+
+  // Use the standardized useAudioSource hook from React package
+  const { source: audioSource } = useAudioSource(audioSourceOptions);
+
   const mediaElementRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
 
   // Computed property for backward compatibility
   const isActive = status === 'active';
 
   const stop = useCallback(() => {
-    // Clean up WebAudioSource
-    if (webAudioSourceRef.current) {
-      webAudioSourceRef.current.destroy?.();
-      webAudioSourceRef.current = null;
-    }
-
     // Clean up media elements
     if (mediaElementRef.current) {
       mediaElementRef.current.pause();
@@ -73,7 +79,8 @@ export function useAudio(): UseAudioReturn {
       mediaElementRef.current = null;
     }
 
-    setAudioSource(null);
+    // Clear the raw audio source (this will automatically clean up the AudioSource via useAudioSource)
+    setRawAudioSource(null);
     setStatus('idle');
   }, []);
 
@@ -96,13 +103,7 @@ export function useAudio(): UseAudioReturn {
     // When audio ends (e.g., file playback completes), return to idle state
     // This allows the user to restart playback
     setStatus('idle');
-    setAudioSource(null);
-
-    // Clean up WebAudioSource
-    if (webAudioSourceRef.current) {
-      webAudioSourceRef.current.destroy?.();
-      webAudioSourceRef.current = null;
-    }
+    setRawAudioSource(null);
 
     // Clean up media elements
     if (mediaElementRef.current) {
@@ -131,13 +132,8 @@ export function useAudio(): UseAudioReturn {
               audio: audioConstraints,
             });
 
-            // ✅ Core library only processes the stream
-            const { WebAudioSource } = await import('@audiowave/react');
-            const webAudioSource = new WebAudioSource();
-            await webAudioSource.initializeFromMediaStream(stream);
-
-            webAudioSourceRef.current = webAudioSource;
-            setAudioSource(webAudioSource);
+            // ✅ Set the raw audio source, useAudioSource will handle the conversion
+            setRawAudioSource(stream);
             break;
           }
 
@@ -173,13 +169,8 @@ export function useAudio(): UseAudioReturn {
               audio.load();
             });
 
-            // ✅ Core library only processes the audio element
-            const { WebAudioSource } = await import('@audiowave/react');
-            const webAudioSource = new WebAudioSource();
-            await webAudioSource.initializeFromMediaElement(audio);
-
-            webAudioSourceRef.current = webAudioSource;
-            setAudioSource(webAudioSource);
+            // ✅ Set the raw audio source, useAudioSource will handle the conversion
+            setRawAudioSource(audio);
             mediaElementRef.current = audio;
 
             // ✅ Application layer controls playback
@@ -215,13 +206,8 @@ export function useAudio(): UseAudioReturn {
               audio.load();
             });
 
-            // ✅ Core library only processes the audio element
-            const { WebAudioSource } = await import('@audiowave/react');
-            const webAudioSource = new WebAudioSource();
-            await webAudioSource.initializeFromMediaElement(audio);
-
-            webAudioSourceRef.current = webAudioSource;
-            setAudioSource(webAudioSource);
+            // ✅ Set the raw audio source, useAudioSource will handle the conversion
+            setRawAudioSource(audio);
             mediaElementRef.current = audio;
 
             // ✅ Application layer controls playback
@@ -255,8 +241,6 @@ export function useAudio(): UseAudioReturn {
     setError(null);
   }, []);
 
-
-
   // Add event listeners for audio end events
   useEffect(() => {
     if (mediaElementRef.current) {
@@ -272,7 +256,7 @@ export function useAudio(): UseAudioReturn {
     // State
     status,
     isActive,
-    source: audioSource, // Renamed for consistency with useIPCAudio
+    source: audioSource, // From useAudioSource hook
     error,
     sourceType,
     // Actions
