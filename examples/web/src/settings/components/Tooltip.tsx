@@ -49,7 +49,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           zIndex: 1000,
         }}
         opacity={1}
-        delayShow={300}
+        delayShow={0}
         delayHide={100}
       />
     </>

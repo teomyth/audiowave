@@ -18,6 +18,7 @@ export {
   MicrophoneIcon,
   NPMIcon,
 } from './components/Icons';
+export { SplitPane } from './components/SplitPane';
 export { WaveformIcon } from './components/WaveformIcon';
 export type {
   AudioActions,
@@ -29,3 +30,4 @@ export { useAudio as useWebAudio } from './hooks/useAudio';
 export type { AudioWaveConfig } from './settings';
 // Export settings and types
 export { DEFAULT_WAVE_CONFIG, WaveSettings } from './settings';
+export { PropertyBasedSettings } from './settings/settings/PropertyBasedSettings';
