@@ -77,26 +77,34 @@ function calculateRMS(audioData: Uint8Array): number {
 
   const rms = Math.sqrt(sumSquares / audioData.length);
 
-  // Apply silence threshold - if RMS is very low, treat as silence
-  const silenceThreshold = 0.5; // Very low threshold for near-silence
-  if (rms < silenceThreshold) {
-    return 0; // Return 0 for silence to avoid false visualization
-  }
-
   // Convert RMS to a more suitable range for visualization
   // Apply logarithmic scaling similar to decibel calculation
   const normalizedRMS = rms / 128; // Normalize to 0-1 range
 
-  // Use a more aggressive threshold for the logarithmic scaling
-  const minThreshold = 0.01; // Higher threshold to avoid noise floor
-  if (normalizedRMS < minThreshold) {
-    return 0;
+  // Define noise floor and silence thresholds for smooth transition
+  const noiseFloor = 0.002; // Very quiet environment baseline
+  const silenceThreshold = 0.008; // Threshold below which we apply heavy attenuation
+
+  let scaledValue: number;
+
+  if (normalizedRMS < noiseFloor) {
+    // For extremely quiet signals, return a minimal but non-zero value
+    // This represents the natural noise floor of any real environment
+    scaledValue = 1; // Very small but visible baseline
+  } else if (normalizedRMS < silenceThreshold) {
+    // Smooth transition zone - gradually increase from noise floor
+    // Use exponential curve for natural feel
+    const transitionRatio = (normalizedRMS - noiseFloor) / (silenceThreshold - noiseFloor);
+    const exponentialCurve = transitionRatio ** 2.5; // Smooth exponential curve
+    scaledValue = 1 + exponentialCurve * 8; // Scale from 1 to ~9
+  } else {
+    // Normal logarithmic scaling for audible signals
+    const logScaled = Math.log10(normalizedRMS + 0.001) + 3;
+    scaledValue = Math.max(10, logScaled * 85); // Ensure minimum of 10 for audible signals
   }
 
-  const logScaled = Math.log10(normalizedRMS + 0.001) + 3; // Add offset to handle log(0)
-
-  // Scale to 0-255 range with appropriate sensitivity
-  return Math.max(0, Math.min(255, logScaled * 85));
+  // Ensure we stay within valid range
+  return Math.max(1, Math.min(255, scaledValue));
 }
 
 // Global adaptive scaler instance (persists across renders)
