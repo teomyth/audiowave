@@ -77,9 +77,22 @@ function calculateRMS(audioData: Uint8Array): number {
 
   const rms = Math.sqrt(sumSquares / audioData.length);
 
+  // Apply silence threshold - if RMS is very low, treat as silence
+  const silenceThreshold = 0.5; // Very low threshold for near-silence
+  if (rms < silenceThreshold) {
+    return 0; // Return 0 for silence to avoid false visualization
+  }
+
   // Convert RMS to a more suitable range for visualization
   // Apply logarithmic scaling similar to decibel calculation
   const normalizedRMS = rms / 128; // Normalize to 0-1 range
+
+  // Use a more aggressive threshold for the logarithmic scaling
+  const minThreshold = 0.01; // Higher threshold to avoid noise floor
+  if (normalizedRMS < minThreshold) {
+    return 0;
+  }
+
   const logScaled = Math.log10(normalizedRMS + 0.001) + 3; // Add offset to handle log(0)
 
   // Scale to 0-255 range with appropriate sensitivity
