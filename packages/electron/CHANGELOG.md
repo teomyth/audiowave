@@ -1,5 +1,12 @@
 # @audiowave/electron
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [96526ba]
+  - @audiowave/react@0.3.0
+
 ## 0.2.1
 
 ### Patch Changes
