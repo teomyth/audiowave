@@ -150,19 +150,23 @@ export const AudioSourceSelector: React.FC<AudioSourceSelectorProps> = ({
 
             {/* Audio Processing Options */}
             <div className="audio-processing-options" style={{ marginTop: '12px' }}>
-              <div style={{
-                display: 'flex',
-                flexDirection: 'row',
-                gap: '12px',
-                alignItems: 'center',
-                justifyContent: 'flex-start'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  gap: '12px',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                }}
+              >
                 <Toggle
                   checked={audioProcessing.echoCancellation}
-                  onChange={(checked) => onAudioProcessingChange({
-                    ...audioProcessing,
-                    echoCancellation: checked
-                  })}
+                  onChange={(checked) =>
+                    onAudioProcessingChange({
+                      ...audioProcessing,
+                      echoCancellation: checked,
+                    })
+                  }
                   label="Echo Cancellation"
                   tooltip="Removes echo and feedback from microphone input"
                   disabled={isActive}
@@ -171,10 +175,12 @@ export const AudioSourceSelector: React.FC<AudioSourceSelectorProps> = ({
 
                 <Toggle
                   checked={audioProcessing.autoGainControl}
-                  onChange={(checked) => onAudioProcessingChange({
-                    ...audioProcessing,
-                    autoGainControl: checked
-                  })}
+                  onChange={(checked) =>
+                    onAudioProcessingChange({
+                      ...audioProcessing,
+                      autoGainControl: checked,
+                    })
+                  }
                   label="Auto Gain Control"
                   tooltip="Automatically adjusts microphone gain level"
                   disabled={isActive}
@@ -183,10 +189,12 @@ export const AudioSourceSelector: React.FC<AudioSourceSelectorProps> = ({
 
                 <Toggle
                   checked={audioProcessing.noiseSuppression}
-                  onChange={(checked) => onAudioProcessingChange({
-                    ...audioProcessing,
-                    noiseSuppression: checked
-                  })}
+                  onChange={(checked) =>
+                    onAudioProcessingChange({
+                      ...audioProcessing,
+                      noiseSuppression: checked,
+                    })
+                  }
                   label="Noise Suppression"
                   tooltip="Reduces background noise from microphone input"
                   disabled={isActive}
@@ -211,7 +219,6 @@ export const AudioSourceSelector: React.FC<AudioSourceSelectorProps> = ({
               type="button"
               className="compact-file-button"
               onClick={() => {
-                console.log('Audio file button clicked');
                 audioFileInputRef.current?.click();
               }}
               disabled={isActive}

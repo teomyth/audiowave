@@ -223,7 +223,6 @@ export function useAudio(): UseAudioReturn {
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : `Failed to start ${sourceType}`;
         setError(errorMessage);
-        console.error(`Error starting ${sourceType}:`, err);
       }
     },
     [sourceType, handleAudioEnd]
