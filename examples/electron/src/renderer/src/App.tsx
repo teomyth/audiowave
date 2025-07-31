@@ -204,6 +204,7 @@ function App() {
               speed={config.bars.speed}
               animateCurrentPick={config.behavior.animateCurrentPick}
               fullscreen={config.behavior.fullscreen}
+              amplitudeMode={config.behavior.amplitudeMode}
               gain={config.bars.gain}
               showBorder={config.size.borderWidth > 0}
               borderColor={config.colors.border}

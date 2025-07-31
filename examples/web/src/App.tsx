@@ -3,12 +3,12 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { AudioControls } from './components/AudioControls';
 import { AudioSourceSelector } from './components/AudioSourceSelector';
 import { ErrorDisplay } from './components/ErrorDisplay';
-import { DEFAULT_AUDIO_PROCESSING, type AudioProcessingOptions } from './types/audioProcessing';
 import { AudioWaveIcon, GitHubIcon, NPMIcon } from './components/Icons';
 import { WaveformIcon } from './components/WaveformIcon';
 import { useAudio } from './hooks/useAudio';
 import type { AudioWaveConfig } from './settings';
 import { DEFAULT_WAVE_CONFIG, WaveSettings } from './settings';
+import { type AudioProcessingOptions, DEFAULT_AUDIO_PROCESSING } from './types/audioProcessing';
 import './App.css';
 
 function App() {
@@ -16,7 +16,8 @@ function App() {
   const [config, setConfig] = useState<AudioWaveConfig>(DEFAULT_WAVE_CONFIG);
 
   // Audio processing options state
-  const [audioProcessing, setAudioProcessing] = useState<AudioProcessingOptions>(DEFAULT_AUDIO_PROCESSING);
+  const [audioProcessing, setAudioProcessing] =
+    useState<AudioProcessingOptions>(DEFAULT_AUDIO_PROCESSING);
 
   // AudioWave component ref for imperative control
   const audioWaveRef = useRef<AudioWaveController>(null);
@@ -198,6 +199,7 @@ function App() {
           speed={config.bars.speed}
           animateCurrentPick={config.behavior.animateCurrentPick}
           fullscreen={config.behavior.fullscreen}
+          amplitudeMode={config.behavior.amplitudeMode}
           gain={config.bars.gain}
           showBorder={config.size.borderWidth > 0}
           borderColor={config.colors.border}

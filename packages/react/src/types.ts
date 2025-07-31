@@ -84,6 +84,14 @@ export interface AudioWaveProps {
    * @range 0.1 - 10.0
    */
   gain?: number;
+  /**
+   * Amplitude calculation mode for better perceptual loudness
+   * - 'peak': Use peak amplitude (default, current behavior)
+   * - 'rms': Use RMS for perceptual loudness
+   * - 'adaptive': Use adaptive scaling to handle dynamic range issues
+   * @default 'peak'
+   */
+  amplitudeMode?: 'peak' | 'rms' | 'adaptive';
 
   // === STATE CONTROL ===
   /** Whether the visualization is paused (keeps waveform frozen) */
@@ -249,6 +257,8 @@ export interface ScrollingWaveformParams {
   fullscreen: boolean;
   /** Visualization gain multiplier (default: 1.0) */
   gain?: number;
+  /** Amplitude calculation mode (default: 'peak') */
+  amplitudeMode?: 'peak' | 'rms' | 'adaptive';
 }
 
 // ============================================================================

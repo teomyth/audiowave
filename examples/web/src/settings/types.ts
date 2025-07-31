@@ -45,6 +45,8 @@ export interface WaveBehaviorConfig {
   animateCurrentPick: boolean;
   /** Enable fullscreen mode for the wave */
   fullscreen: boolean;
+  /** Amplitude calculation mode for better perceptual loudness */
+  amplitudeMode: 'peak' | 'rms' | 'adaptive';
 }
 
 export interface AudioWaveConfig {
@@ -86,5 +88,6 @@ export const DEFAULT_WAVE_CONFIG: AudioWaveConfig = {
   behavior: {
     animateCurrentPick: true,
     fullscreen: false,
+    amplitudeMode: 'peak', // Default to current behavior for backward compatibility
   },
 };

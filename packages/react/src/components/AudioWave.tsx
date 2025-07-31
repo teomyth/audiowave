@@ -47,6 +47,7 @@ export const AudioWave = forwardRef<AudioWaveController, AudioWaveProps>(
       animateCurrentPick = DEFAULT_VISUALIZER_PROPS.animateCurrentPick,
       fullscreen = DEFAULT_VISUALIZER_PROPS.fullscreen,
       gain = 1.0,
+      amplitudeMode = 'peak',
       isPaused = false,
       placeholder,
       showPlaceholderBackground = true,
@@ -312,6 +313,7 @@ export const AudioWave = forwardRef<AudioWaveController, AudioWaveProps>(
             animateCurrentPick,
             fullscreen,
             gain,
+            amplitudeMode,
           });
         }
 
@@ -364,6 +366,8 @@ export const AudioWave = forwardRef<AudioWaveController, AudioWaveProps>(
       customRenderer,
       internalState,
       animateCurrentPick,
+      gain,
+      amplitudeMode,
     ]);
 
     /**
@@ -401,7 +405,7 @@ export const AudioWave = forwardRef<AudioWaveController, AudioWaveProps>(
         resizeCanvas(canvas, canvasWidth, canvasHeight, backgroundColor);
         setCanvasDimensions({ width: canvasWidth, height: canvasHeight });
       }
-    }, [width, height, canvasDimensions]);
+    }, [width, height, canvasDimensions, backgroundColor]);
 
     // Set up audio source when source changes
     useEffect(() => {

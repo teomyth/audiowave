@@ -25,6 +25,70 @@ import type { ScrollingWaveformParams, WaveformDataPoint } from '../types';
  */
 const AUDIO_NORMALIZATION_FACTOR = 256;
 
+/**
+ * Adaptive scaler for dynamic range compression
+ * Helps solve the problem where loud sounds make normal sounds appear very small
+ */
+class AdaptiveScaler {
+  private recentMax: number = 0;
+  private longTermMax: number = 0;
+  private history: number[] = [];
+  private readonly maxHistoryLength = 60; // ~1 second at 60fps
+
+  scale(currentAmplitude: number): number {
+    // Add to history
+    this.history.push(currentAmplitude);
+    if (this.history.length > this.maxHistoryLength) {
+      this.history.shift();
+    }
+
+    // Update recent max (fast adaptation for sudden changes)
+    this.recentMax = Math.max(this.recentMax * 0.95, currentAmplitude);
+
+    // Update long-term max (slow adaptation for baseline)
+    this.longTermMax = this.longTermMax * 0.998 + currentAmplitude * 0.002;
+
+    // Calculate adaptive reference level
+    const adaptiveMax = Math.max(
+      this.recentMax * 0.6 + this.longTermMax * 0.4,
+      30 // Minimum threshold for quiet environments
+    );
+
+    // Apply adaptive scaling with soft compression
+    const scaledAmplitude = (currentAmplitude / adaptiveMax) * 180;
+
+    // Soft compression to prevent clipping while maintaining dynamics
+    return Math.min(255, scaledAmplitude * (1 - scaledAmplitude / 400));
+  }
+}
+
+/**
+ * Calculate RMS (Root Mean Square) for perceptual loudness
+ * RMS better represents how humans perceive loudness compared to peak values
+ */
+function calculateRMS(audioData: Uint8Array): number {
+  let sumSquares = 0;
+  const centerValue = 128;
+
+  for (let i = 0; i < audioData.length; i++) {
+    const deviation = audioData[i] - centerValue;
+    sumSquares += deviation * deviation;
+  }
+
+  const rms = Math.sqrt(sumSquares / audioData.length);
+
+  // Convert RMS to a more suitable range for visualization
+  // Apply logarithmic scaling similar to decibel calculation
+  const normalizedRMS = rms / 128; // Normalize to 0-1 range
+  const logScaled = Math.log10(normalizedRMS + 0.001) + 3; // Add offset to handle log(0)
+
+  // Scale to 0-255 range with appropriate sensitivity
+  return Math.max(0, Math.min(255, logScaled * 85));
+}
+
+// Global adaptive scaler instance (persists across renders)
+let globalAdaptiveScaler: AdaptiveScaler | null = null;
+
 export interface CanvasSetupResult {
   context: CanvasRenderingContext2D;
   width: number;
@@ -217,6 +281,7 @@ export const drawByLiveStream = ({
   animateCurrentPick,
   fullscreen,
   gain = 1.0,
+  amplitudeMode = 'peak',
 }: {
   audioData: Uint8Array;
   unit: number;
@@ -234,6 +299,7 @@ export const drawByLiveStream = ({
   animateCurrentPick: boolean;
   fullscreen: boolean;
   gain?: number;
+  amplitudeMode?: 'peak' | 'rms' | 'adaptive';
 }) => {
   const canvasData = initialCanvasSetup({ canvas, backgroundColor });
   if (!canvasData) return;
@@ -246,30 +312,64 @@ export const drawByLiveStream = ({
 
     let maxPick = 0;
 
-    // Time domain data processing: calculate amplitude from center (128)
-    let maxAmplitude = 0;
-    const centerValue = 128;
-
-    for (let i = 0; i < audioData.length; i++) {
-      const deviation = Math.abs(audioData[i] - centerValue);
-      if (deviation > maxAmplitude) {
-        maxAmplitude = deviation;
+    // Initialize or reset adaptive scaler if using adaptive mode
+    if (amplitudeMode === 'adaptive') {
+      if (!globalAdaptiveScaler) {
+        globalAdaptiveScaler = new AdaptiveScaler();
       }
+    } else {
+      // Reset adaptive scaler when switching away from adaptive mode
+      globalAdaptiveScaler = null;
     }
 
-    // Convert amplitude to 0-255 scale and apply gain
-    // Scale the amplitude appropriately for visualization
-    const amplitudeScale = maxAmplitude * 2; // Reasonable sensitivity for better visibility
+    // Calculate amplitude based on selected mode
+    switch (amplitudeMode) {
+      case 'rms': {
+        // Use RMS for perceptual loudness
+        const rmsAmplitude = calculateRMS(audioData);
+        const clampedGain = Math.max(0.1, Math.min(10.0, gain));
+        maxPick = Math.min(255, rmsAmplitude * clampedGain);
+        break;
+      }
 
-    // Apply gain to amplify the waveform for better visibility
-    // Ensure gain is within valid range
-    const clampedGain = Math.max(0.1, Math.min(10.0, gain));
+      case 'adaptive': {
+        // First calculate peak amplitude
+        let peakAmplitude = 0;
+        const centerValue = 128;
 
-    // Apply gain directly to the amplitude
-    maxPick = Math.min(255, amplitudeScale * clampedGain);
+        for (let i = 0; i < audioData.length; i++) {
+          const deviation = Math.abs(audioData[i] - centerValue);
+          if (deviation > peakAmplitude) {
+            peakAmplitude = deviation;
+          }
+        }
 
-    // In very quiet environments, maxPick will naturally be very small (close to 0)
-    // This will create a small dot in the center, which is the correct behavior
+        // Apply adaptive scaling
+        const scaledAmplitude = globalAdaptiveScaler!.scale(peakAmplitude * 2);
+        const clampedGain = Math.max(0.1, Math.min(10.0, gain));
+        maxPick = Math.min(255, scaledAmplitude * clampedGain);
+        break;
+      }
+
+      default: {
+        // Original peak-based calculation (default behavior)
+        let maxAmplitude = 0;
+        const centerValue = 128;
+
+        for (let i = 0; i < audioData.length; i++) {
+          const deviation = Math.abs(audioData[i] - centerValue);
+          if (deviation > maxAmplitude) {
+            maxAmplitude = deviation;
+          }
+        }
+
+        // Convert amplitude to 0-255 scale and apply gain
+        const amplitudeScale = maxAmplitude * 2;
+        const clampedGain = Math.max(0.1, Math.min(10.0, gain));
+        maxPick = Math.min(255, amplitudeScale * clampedGain);
+        break;
+      }
+    }
 
     if (!isPausedAudio) {
       if (index2.current >= barWidth) {
@@ -379,6 +479,7 @@ export function renderScrollingWaveform(params: ScrollingWaveformParams): void {
     animateCurrentPick: params.animateCurrentPick,
     fullscreen: params.fullscreen,
     gain: params.gain,
+    amplitudeMode: params.amplitudeMode,
   });
 }
 

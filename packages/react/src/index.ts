@@ -154,4 +154,5 @@ export const DEFAULT_VISUALIZER_PROPS = {
   animateCurrentPick: true,
   fullscreen: false,
   onlyActive: false,
+  amplitudeMode: 'peak',
 } as const;
