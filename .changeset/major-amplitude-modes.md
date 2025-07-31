@@ -1,7 +1,5 @@
 ---
 "@audiowave/react": minor
-"@audiowave/web-example": patch
-"@audiowave/electron-example": patch
 ---
 
 # Add amplitude calculation modes with enhanced RMS processing and improved UI
