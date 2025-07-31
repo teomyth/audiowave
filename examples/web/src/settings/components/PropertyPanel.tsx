@@ -42,6 +42,7 @@ const PropertyControl: React.FC<{
     backgroundColor: '#2a2a2a',
     color: '#e0e0e0',
     outline: 'none',
+    fontFamily: 'Monaco, "Cascadia Code", "Roboto Mono", "Consolas", monospace',
   };
 
   switch (item.type) {
@@ -152,7 +153,7 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
         height: '100%',
         overflowX: 'hidden', // 禁用水平滚动条
         overflowY: 'auto', // 只允许垂直滚动
-        fontFamily: 'system-ui, -apple-system, sans-serif',
+        fontFamily: 'Monaco, "Cascadia Code", "Roboto Mono", "Consolas", monospace',
         fontSize: '12px',
       }}
     >
