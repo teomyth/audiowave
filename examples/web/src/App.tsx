@@ -4,10 +4,12 @@ import { AudioControls } from './components/AudioControls';
 import { AudioSourceSelector } from './components/AudioSourceSelector';
 import { ErrorDisplay } from './components/ErrorDisplay';
 import { AudioWaveIcon, GitHubIcon, NPMIcon } from './components/Icons';
+import { SplitPane } from './components/SplitPane';
 import { WaveformIcon } from './components/WaveformIcon';
 import { useAudio } from './hooks/useAudio';
 import type { AudioWaveConfig } from './settings';
-import { DEFAULT_WAVE_CONFIG, WaveSettings } from './settings';
+import { DEFAULT_WAVE_CONFIG } from './settings';
+import { PropertyBasedSettings } from './settings/settings/PropertyBasedSettings';
 import { type AudioProcessingOptions, DEFAULT_AUDIO_PROCESSING } from './types/audioProcessing';
 import './App.css';
 
@@ -98,40 +100,51 @@ function App() {
   const placeholder = useMemo(() => <AudioWaveIcon size={48} />, []);
 
   return (
-    <>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       {/* Top Error Banner */}
       {error && <ErrorDisplay error={error} onClear={clearError} isTopBanner={true} />}
 
-      {/* Header */}
+      {/* Compact Header */}
       <div
         style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '20px',
-          marginTop: error ? '60px' : '0', // Add top margin when error banner is shown
+          padding: '12px 20px',
+          borderBottom: '1px solid #333',
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%)', // 与整体背景保持一致
+          flexShrink: 0,
+          marginTop: error ? '60px' : '0',
         }}
       >
-        <div>
+        <div style={{ textAlign: 'left', alignSelf: 'flex-start' }}>
           <h1
             style={{
               margin: 0,
-              fontSize: '20px',
+              fontSize: '18px',
               fontWeight: '600',
               color: '#00bcd4',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
+              justifyContent: 'flex-start', // 确保内容靠左
             }}
           >
-            <WaveformIcon size={24} color="#00bcd4" />
+            <WaveformIcon size={20} color="#00bcd4" />
             AudioWave
           </h1>
-          <p style={{ margin: '8px 0 0 0', color: '#888', fontSize: '14px' }}>
-            High-performance real-time audio visualization
+          <p
+            style={{
+              margin: '4px 0 0 0',
+              color: '#888',
+              fontSize: '12px',
+              textAlign: 'left', // 确保副标题也靠左
+            }}
+          >
+            Real-time Audio Visualization
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <a
             href="https://github.com/teomyth/audiowave"
             target="_blank"
@@ -145,7 +158,7 @@ function App() {
             }}
             title="View on GitHub"
           >
-            <GitHubIcon size={32} />
+            <GitHubIcon size={40} /> {/* 进一步增大图标尺寸 */}
           </a>
           <a
             href="https://www.npmjs.com/package/@audiowave/react"
@@ -159,73 +172,119 @@ function App() {
             }}
             title="View on NPM"
           >
-            <NPMIcon size={40} />
+            <NPMIcon size={44} /> {/* 进一步增大图标尺寸 */}
           </a>
         </div>
       </div>
 
-      {/* Audio Source Selector - Top Priority */}
-      <AudioSourceSelector
-        sourceType={sourceType}
-        onSourceTypeChange={setSourceType}
-        onStart={handleStart}
-        isActive={status === 'active'}
-        error={error}
-        audioProcessing={audioProcessing}
-        onAudioProcessingChange={setAudioProcessing}
-      />
+      {/* Main Content Area with Split Pane */}
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        <SplitPane
+          left={
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <div
+                style={{
+                  padding: '12px 16px',
+                  borderBottom: '2px solid #333',
+                  backgroundColor: '#222',
+                  flexShrink: 0,
+                }}
+              >
+                <h3
+                  style={{
+                    margin: '0',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: '#e0e0e0',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                  }}
+                >
+                  Properties
+                </h3>
+              </div>
+              <div style={{ flex: 1, overflow: 'auto' }}>
+                <PropertyBasedSettings config={config} onChange={setConfig} />
+              </div>
+            </div>
+          }
+          right={
+            <div
+              style={{ height: '100%', padding: '20px', display: 'flex', flexDirection: 'column' }}
+            >
+              {/* Audio Source Selector */}
+              <div style={{ marginBottom: '20px', width: '100%' }}>
+                <AudioSourceSelector
+                  sourceType={sourceType}
+                  onSourceTypeChange={setSourceType}
+                  onStart={handleStart}
+                  isActive={status === 'active'}
+                  error={error}
+                  audioProcessing={audioProcessing}
+                  onAudioProcessingChange={setAudioProcessing}
+                />
+              </div>
 
-      {/* Waveform Display Area - Second Priority */}
-      <div
-        style={{
-          margin: '0 0 20px 0',
-          display: 'flex',
-          justifyContent: 'center',
-        }}
-      >
-        <AudioWave
-          ref={audioWaveRef}
-          source={source || undefined}
-          isPaused={status === 'paused'}
-          onStateChange={handleAudioWaveStateChange}
-          width={`${config.size.width}%`}
-          height={config.size.height}
-          backgroundColor={config.colors.background}
-          barColor={config.colors.primary}
-          secondaryBarColor={config.colors.secondary}
-          barWidth={config.bars.width}
-          gap={config.bars.gap}
-          rounded={config.bars.rounded}
-          speed={config.bars.speed}
-          animateCurrentPick={config.behavior.animateCurrentPick}
-          fullscreen={config.behavior.fullscreen}
-          amplitudeMode={config.behavior.amplitudeMode}
-          gain={config.bars.gain}
-          showBorder={config.size.borderWidth > 0}
-          borderColor={config.colors.border}
-          borderWidth={config.size.borderWidth}
-          borderRadius={config.size.borderRadius}
-          placeholder={placeholder}
-          showPlaceholderBackground={true}
+              {/* Waveform Display Area */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginBottom: '16px', // 减少底部间距
+                  minHeight: '200px', // 确保有足够的显示空间
+                }}
+              >
+                <AudioWave
+                  ref={audioWaveRef}
+                  source={source || undefined}
+                  isPaused={status === 'paused'}
+                  onStateChange={handleAudioWaveStateChange}
+                  width="100%"
+                  height={config.size.height}
+                  backgroundColor={config.colors.background}
+                  barColor={config.colors.primary}
+                  secondaryBarColor={config.colors.secondary}
+                  barWidth={config.bars.width}
+                  gap={config.bars.gap}
+                  rounded={config.bars.rounded}
+                  speed={config.bars.speed}
+                  animateCurrentPick={config.behavior.animateCurrentPick}
+                  fullscreen={config.behavior.fullscreen}
+                  amplitudeMode={config.behavior.amplitudeMode}
+                  gain={config.bars.gain}
+                  showBorder={config.size.borderWidth > 0}
+                  borderColor={config.colors.border}
+                  borderWidth={config.size.borderWidth}
+                  borderRadius={config.size.borderRadius}
+                  placeholder={placeholder}
+                  showPlaceholderBackground={true}
+                />
+              </div>
+
+              {/* Audio Controls - 紧接着波形显示 */}
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <AudioControls
+                  status={status}
+                  onStart={handleStart}
+                  onPause={handlePause}
+                  onResume={handleResume}
+                  onStop={handleStop}
+                  onClear={() => audioWaveRef.current?.clear()}
+                  disabled={!canStart() && status === 'idle'}
+                />
+              </div>
+
+              {/* 底部填充空间 */}
+              <div style={{ flex: 1 }} />
+            </div>
+          }
+          defaultLeftWidth={320}
+          minLeftWidth={300}
+          maxLeftWidth={450}
         />
       </div>
-
-      {/* Audio Controls with Beautiful SVG Icons */}
-      <div style={{ marginBottom: '20px' }}>
-        <AudioControls
-          status={status}
-          onStart={handleStart}
-          onPause={handlePause}
-          onResume={handleResume}
-          onStop={handleStop}
-          onClear={() => audioWaveRef.current?.clear()}
-          disabled={!canStart() && status === 'idle'}
-        />
-      </div>
-
-      {/* Wave Settings */}
-      <WaveSettings config={config} onChange={setConfig} title="AudioWave Settings" />
-    </>
+    </div>
   );
 }
 

@@ -2,10 +2,11 @@
   border: 2px solid #333;
   border-radius: 8px;
   padding: 16px;
-  margin: 0 auto 20px auto;
-  max-width: 1000px;
+  margin: 0; /* 移除 auto margin */
+  width: 100%; /* 占满全宽 */
   background-color: #1a1a1a;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-sizing: border-box; /* 确保 padding 不会超出宽度 */
 }
 
 .selector-header {
