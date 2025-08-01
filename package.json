@@ -18,14 +18,13 @@
     "url": "https://github.com/teomyth/audiowave.git"
   },
   "workspaces": [
-    "packages/react",
-    "packages/electron"
+    "packages/core",
+    "packages/react"
   ],
   "scripts": {
     "build": "pnpm -r build",
     "build:ci": "pnpm --filter='{packages/**}' build",
     "dev": "pnpm -r dev",
-
     "test": "pnpm -r test",
     "test:ci": "pnpm --filter='{packages/**}' test",
     "test:coverage": "pnpm --filter @audiowave/react test:coverage",
@@ -38,7 +37,6 @@
     "type-check:ci": "pnpm --filter='{packages/**}' type-check",
     "clean": "pnpm -r clean && rm -rf dist .tsbuildinfo",
     "clean:all": "pnpm -r clean && rm -rf node_modules dist .tsbuildinfo && pnpm store prune",
-
     "changeset": "changeset",
     "changeset:version": "changeset version",
     "changeset:publish": "changeset publish",
