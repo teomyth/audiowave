@@ -14,14 +14,18 @@
 
 // Type definitions
 export type {
-  AudioConfig,
+  AudioBridgeConfig,
   AudioDataPacket,
   AudioDeviceInfo,
+  AudioDataInput,
 } from './audio-bridge';
 // Main audio bridge class
 export { AudioBridge } from './audio-bridge';
 
-import type { AudioConfig } from './audio-bridge';
+// Backward compatibility
+export type { AudioBridgeConfig as AudioConfig } from './audio-bridge';
+
+import type { AudioBridgeConfig } from './audio-bridge';
 // Import types for internal use
 import { AudioBridge } from './audio-bridge';
 
@@ -62,15 +66,16 @@ export const VERSION = '0.1.0';
  * audioBridge.processAudioData(rawAudioData);
  * ```
  */
-export function createAudioBridge(_config?: Partial<AudioConfig>): AudioBridge {
+export function createAudioBridge(_config?: Partial<AudioBridgeConfig>): AudioBridge {
   return new AudioBridge();
 }
 
 /**
  * Default configuration for AudioBridge
  */
-export const DEFAULT_AUDIO_CONFIG: AudioConfig = {
+export const DEFAULT_AUDIO_CONFIG: AudioBridgeConfig = {
   bufferSize: 1024,
+  skipInitialFrames: 0,
 };
 
 /**
@@ -79,6 +84,21 @@ export const DEFAULT_AUDIO_CONFIG: AudioConfig = {
  * @param config - Configuration to validate
  * @returns True if configuration is valid
  */
-export function validateAudioConfig(config: AudioConfig): boolean {
-  return config.bufferSize > 0;
+export function validateAudioConfig(config: AudioBridgeConfig): boolean {
+  if (!config || typeof config !== 'object') {
+    return false;
+  }
+
+  if (typeof config.bufferSize !== 'number' || config.bufferSize <= 0 || config.bufferSize > 16384) {
+    return false;
+  }
+
+  if (config.skipInitialFrames !== undefined &&
+      (typeof config.skipInitialFrames !== 'number' ||
+       config.skipInitialFrames < 0 ||
+       config.skipInitialFrames > 100)) {
+    return false;
+  }
+
+  return true;
 }
