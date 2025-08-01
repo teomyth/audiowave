@@ -1,6 +1,6 @@
 {
   "name": "@audiowave/electron",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Electron audio source for AudioWave - main and renderer process support",
   "keywords": [
     "electron",
