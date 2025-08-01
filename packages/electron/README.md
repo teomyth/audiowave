@@ -49,6 +49,7 @@ const audioBridge = new AudioBridge('default');
 // Create audio buffer for IPC communication
 const audioConfig = {
   bufferSize: 1024,   // Buffer size for data transmission
+  skipInitialFrames: 2, // Skip first 2 frames to avoid initialization noise (optional)
 };
 const buffer = audioBridge.createAudioBuffer(audioConfig);
 
@@ -172,6 +173,7 @@ bridge.destroy();
 ```typescript
 interface AudioConfig {
   bufferSize: number;        // Buffer size in samples (512, 1024, 2048, etc.)
+  skipInitialFrames?: number; // Number of initial frames to skip (default: 0)
 }
 
 interface AudioDataPacket {
@@ -185,6 +187,36 @@ interface AudioDeviceInfo {
   name: string;                // Human-readable device name
 }
 ```
+
+#### Skip Initial Frames Configuration
+
+The `skipInitialFrames` option helps eliminate initialization noise:
+
+```typescript
+// Example configurations
+const configs = {
+  // No skipping (default)
+  basic: { bufferSize: 1024 },
+
+  // Skip 2 frames (recommended for most devices)
+  standard: {
+    bufferSize: 1024,
+    skipInitialFrames: 2
+  },
+
+  // Skip more frames for problematic devices
+  conservative: {
+    bufferSize: 1024,
+    skipInitialFrames: 5
+  }
+};
+```
+
+**Why skip initial frames?**
+- **Hardware initialization**: Audio devices need time to stabilize
+- **Driver buffers**: May contain garbage data in first few frames
+- **Visual quality**: Prevents false spikes at visualization start
+- **Typical values**: 0-5 frames (2 is usually sufficient)
 
 ## Renderer Process API
 

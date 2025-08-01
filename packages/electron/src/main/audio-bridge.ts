@@ -5,6 +5,7 @@ import { EventEmitter } from 'node:events';
  */
 export interface AudioConfig {
   bufferSize: number; // Buffer size for data transmission
+  skipInitialFrames?: number; // Number of initial frames to skip (default: 0)
 }
 
 /**
@@ -32,6 +33,7 @@ export class AudioBridge extends EventEmitter {
   private audioBuffer: ArrayBuffer | null = null;
   private config: AudioConfig | null = null;
   private deviceId: string;
+  private frameCount: number = 0;
 
   constructor(deviceId: string = 'default') {
     super();
@@ -43,6 +45,7 @@ export class AudioBridge extends EventEmitter {
    */
   createAudioBuffer(config: AudioConfig): ArrayBuffer {
     this.config = config;
+    this.frameCount = 0; // Reset frame counter for new audio stream
 
     // Create buffer for time domain data (Uint8Array)
     const bufferSize = config.bufferSize;
@@ -57,6 +60,14 @@ export class AudioBridge extends EventEmitter {
   processAudioData(rawData: Buffer | Float32Array): AudioDataPacket | null {
     if (!this.config || !this.audioBuffer) {
       return null;
+    }
+
+    // Increment frame counter
+    this.frameCount++;
+
+    // Skip initial frames if configured
+    if (this.config.skipInitialFrames && this.frameCount <= this.config.skipInitialFrames) {
+      return null; // Skip this frame
     }
 
     try {

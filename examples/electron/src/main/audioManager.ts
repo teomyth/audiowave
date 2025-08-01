@@ -8,6 +8,7 @@ export interface AudioCaptureConfig {
   sampleRate: number; // Used by naudiodon
   channels: number; // Used by naudiodon
   bufferSize: number; // Buffer size for data transmission
+  skipInitialFrames?: number; // Number of initial frames to skip (default: 2)
 }
 
 /**
@@ -17,6 +18,7 @@ export const DEFAULT_AUDIO_CAPTURE_CONFIG: AudioCaptureConfig = {
   sampleRate: 44100,
   channels: 1,
   bufferSize: 1024,
+  skipInitialFrames: 2, // Skip first 2 frames to avoid initialization noise
 };
 
 // Import naudiodon2 dynamically to handle potential installation issues
@@ -109,6 +111,7 @@ export class AudioManager extends EventEmitter {
     // Extract only the parameters AudioBridge needs
     const bridgeConfig: AudioConfig = {
       bufferSize: config.bufferSize,
+      skipInitialFrames: config.skipInitialFrames ?? 2, // Default to 2 frames if not specified
     };
 
     // Use AudioBridge to create the buffer
@@ -202,27 +205,6 @@ export class AudioManager extends EventEmitter {
 
       // Start the audio stream
       audioInput.start();
-
-      // 🔧 FIX: Skip only a few initial frames to prevent initialization noise
-      let skipInitialFrames = 2; // Minimal skip to avoid initialization artifacts
-      const originalProcessAudioData = this.processAudioData.bind(this);
-
-      // Create a device-specific data processor
-      const deviceProcessor = (data: Buffer) => {
-        if (skipInitialFrames > 0) {
-          skipInitialFrames--;
-          // Don't send any data during initial skip period
-          return;
-        }
-
-        // After initial skip, always process and send data continuously
-        // This ensures the frontend receives data at regular intervals
-        // Frontend will handle display: active waveform for audio, flat line for silence
-        originalProcessAudioData(deviceId, data);
-      };
-
-      // Set up the data handler with device-specific processor
-      audioInput.on('data', deviceProcessor);
 
       this.captureStates.set(deviceId, true);
       this.emit('started');
