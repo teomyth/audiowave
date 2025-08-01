@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "description": "AudioWave Desktop Audio Visualization Demo - Electron application with React",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": "teomyth",
+  "homepage": "https://github.com/teomyth/audiowave",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
@@ -20,7 +20,7 @@
     "build:linux": "electron-vite build && electron-builder --linux"
   },
   "dependencies": {
-    "@audiowave/electron": "workspace:*",
+    "@audiowave/core": "workspace:*",
     "@audiowave/react": "workspace:*",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",

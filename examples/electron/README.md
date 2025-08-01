@@ -40,16 +40,20 @@ pnpm build:electron
 ```tsx
 // renderer/App.tsx
 import { AudioWave, type AudioWaveController } from '@audiowave/react';
-import { useIPCAudio } from '@audiowave/electron';
-import { useElectronAudioControl } from './hooks/useElectronAudioControl';
+import { useCustomAudio } from '@audiowave/react';
+import { useAudioControl } from './hooks/useAudioControl';
 import { useRef } from 'react';
 
 export default function App() {
-  // Data access hook (visualization only)
-  const { source, status, error } = useIPCAudio({ deviceId: 'default' });
+  // Audio data provider for desktop audio
+  const electronProvider = useMemo(() => createElectronProvider(), []);
+  const { source } = useCustomAudio({
+    provider: electronProvider,
+    deviceId: 'default',
+  });
 
-  // Device control hook (application layer)
-  const { start, stop, isActive } = useElectronAudioControl({ deviceId: 'default' });
+  // Device control hook
+  const { start, stop, isActive } = useAudioControl({ deviceId: 'default' });
 
   const audioWaveRef = useRef<AudioWaveController>(null);
 
@@ -63,19 +67,15 @@ export default function App() {
         gain={2.0}
       />
 
-      {/* Device control (handled by application) */}
+      {/* Device control */}
       <button onClick={isActive ? stop : start}>
         {isActive ? 'Stop Desktop Audio' : 'Start Desktop Audio'}
       </button>
 
-      {/* Visualization control (handled by AudioWave) */}
+      {/* Visualization control */}
       <button onClick={() => audioWaveRef.current?.pause()}>
         Pause Visualization
       </button>
-
-      {/* Status display */}
-      <div>Status: {status}</div>
-      {error && <div>Error: {error}</div>}
     </div>
   );
 }
@@ -150,6 +150,7 @@ export default function AmplitudeModeExample() {
 ```
 
 **Recommended modes for desktop audio:**
+
 - **RMS**: Best for system audio and music playback
 - **Peak**: Good for monitoring audio levels and peaks
 - **Adaptive**: Useful for varying system audio levels
