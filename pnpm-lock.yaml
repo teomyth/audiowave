@@ -165,43 +165,6 @@ importers:
         specifier: ^5.0.0
         version: 5.8.3
 
-  packages/electron:
-    dependencies:
-      '@audiowave/react':
-        specifier: workspace:*
-        version: link:../react
-      react:
-        specifier: '>=16.8.0'
-        version: 19.1.0
-      react-dom:
-        specifier: '>=16.8.0'
-        version: 19.1.0(react@19.1.0)
-    devDependencies:
-      '@types/node':
-        specifier: ^24.1.0
-        version: 24.1.0
-      '@types/react':
-        specifier: ^19.1.8
-        version: 19.1.8
-      '@types/react-dom':
-        specifier: ^19.1.6
-        version: 19.1.6(@types/react@19.1.8)
-      '@vitejs/plugin-react':
-        specifier: ^4.7.0
-        version: 4.7.0(vite@5.4.19(@types/node@24.1.0))
-      electron:
-        specifier: ^37.2.4
-        version: 37.2.4
-      typescript:
-        specifier: ^5.8.3
-        version: 5.8.3
-      vite:
-        specifier: ^5.4.0
-        version: 5.4.19(@types/node@24.1.0)
-      vite-plugin-dts:
-        specifier: ^4.5.4
-        version: 4.5.4(@types/node@24.1.0)(rollup@4.45.1)(typescript@5.8.3)(vite@5.4.19(@types/node@24.1.0))
-
   packages/react:
     dependencies:
       '@audiowave/core':

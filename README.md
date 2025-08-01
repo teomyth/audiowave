@@ -19,8 +19,12 @@ A lightweight, performant React component library for audio waveform visualizati
 
 | Package | Description | Size |
 |---------|-------------|------|
-| [`@audiowave/react`](./packages/react) | Core React components | ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@audiowave/react) |
-| [`@audiowave/electron`](./packages/electron) | Electron audio support | ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@audiowave/electron) |
+| [`@audiowave/core`](./packages/core) | Core audio processing engine | ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@audiowave/core) |
+| [`@audiowave/react`](./packages/react) | React components and hooks | ![npm bundle size](https://img.shields.io/bundlephobia/minzip/@audiowave/react) |
+
+## ⚠️ Package Deprecation Notice
+
+**`@audiowave/electron` has been deprecated.** Please see the [migration guide](./docs/migration-guides/electron-package-deprecation.md) for upgrading to the new approach using `@audiowave/react` with `useCustomAudio`.
 
 ## 🚀 Quick Start
 

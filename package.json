@@ -19,8 +19,7 @@
   },
   "workspaces": [
     "packages/core",
-    "packages/react",
-    "packages/electron"
+    "packages/react"
   ],
   "scripts": {
     "build": "pnpm -r build",
