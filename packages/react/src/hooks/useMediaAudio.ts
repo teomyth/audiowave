@@ -192,3 +192,6 @@ export function useAudioNodeSource(
 ) {
   return useMediaAudio({ ...options, source: node });
 }
+
+// Backward compatibility alias
+export { useMediaAudio as useAudioSource };

@@ -6,7 +6,7 @@
 
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useAudioSource } from '../hooks/useAudioSource';
+import { useAudioSource } from '../hooks/useMediaAudio';
 
 describe('useAudioSource Hook - Basic Tests', () => {
   beforeEach(() => {
