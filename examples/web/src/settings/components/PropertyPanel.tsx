@@ -5,14 +5,14 @@ import { Tooltip } from './Tooltip';
 
 export interface PropertyItem {
   key: string;
-  name: string; // 原生属性名
+  name: string; // Native property name
   type: 'boolean' | 'select' | 'number' | 'color' | 'range';
   value: unknown;
   options?: Array<{ value: unknown; label: string; description?: string }>;
   min?: number;
   max?: number;
   step?: number;
-  description: string; // 必需的详细描述
+  description: string; // Required detailed description
   tooltip?: string;
 }
 
@@ -55,7 +55,7 @@ const PropertyControl: React.FC<{
           disabled={disabled}
           style={{
             cursor: disabled ? 'not-allowed' : 'pointer',
-            transform: 'scale(1.2)', // 稍微放大复选框
+            transform: 'scale(1.2)', // Slightly enlarge checkbox
           }}
         />
       );
@@ -144,33 +144,33 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
   onChange,
   disabled = false,
 }) => {
-  // 移除折叠功能相关代码
+  // Remove collapsing functionality code
 
   return (
     <div
       style={{
         backgroundColor: 'transparent',
         height: '100%',
-        overflowX: 'hidden', // 禁用水平滚动条
-        overflowY: 'auto', // 只允许垂直滚动
+        overflowX: 'hidden', // Disable horizontal scrollbar
+        overflowY: 'auto', // Only allow vertical scrolling
         fontFamily: 'Monaco, "Cascadia Code", "Roboto Mono", "Consolas", monospace',
         fontSize: '12px',
       }}
     >
       {groups.map((group) => {
-        // 不再需要折叠状态
+        // No longer need collapse state
 
         return (
           <div key={group.title}>
             {/* Group Header */}
             <div
               style={{
-                padding: '6px 10px', // 进一步减少内边距
+                padding: '6px 10px', // Further reduce padding
                 backgroundColor: '#2a2a2a',
                 borderBottom: '1px solid #444',
                 display: 'flex',
                 alignItems: 'center',
-                fontSize: '10px', // 进一步减小字体
+                fontSize: '10px', // Further reduce font size
                 fontWeight: '600',
                 color: '#e0e0e0',
                 userSelect: 'none',
@@ -178,33 +178,33 @@ export const PropertyPanel: React.FC<PropertyPanelProps> = ({
               }}
             >
               <span>{group.title}</span>
-              {/* 移除下拉箭头 */}
+              {/* Remove dropdown arrow */}
             </div>
 
-            {/* Group Content - 始终显示，不再折叠 */}
+            {/* Group Content - Always visible, no longer collapsible */}
             <div style={{ padding: '0' }}>
               {group.items.map((item) => (
                 <div
                   key={item.key}
                   style={{
-                    padding: '4px 8px', // 进一步减少内边距
+                    padding: '4px 8px', // Further reduce padding
                     borderBottom: '1px solid #2a2a2a',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '4px', // 进一步减少间距
-                    minHeight: '24px', // 进一步减少最小高度
+                    gap: '4px', // Further reduce spacing
+                    minHeight: '24px', // Further reduce minimum height
                     backgroundColor: '#1a1a1a',
                   }}
                 >
                   {/* Property Name */}
                   <div
                     style={{
-                      minWidth: '120px', // 以 animateCurrentPick 为基准再紧缩
-                      width: '120px', // 更紧凑的宽度
-                      fontSize: '10px', // 稍微增大字体，提高可读性
+                      minWidth: '120px', // Further compress based on animateCurrentPick
+                      width: '120px', // More compact width
+                      fontSize: '10px', // Slightly increase font for better readability
                       color: '#c0c0c0',
                       textAlign: 'left',
-                      whiteSpace: 'nowrap', // 不换行
+                      whiteSpace: 'nowrap', // No line wrapping
                       fontFamily: 'Monaco, "Cascadia Code", "Roboto Mono", monospace',
                       fontWeight: '500',
                     }}

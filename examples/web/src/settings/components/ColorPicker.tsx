@@ -39,7 +39,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '2px', // 减少间距
+        gap: '2px', // Reduce spacing
         minWidth: '60px',
         flex: '1 1 auto',
       }}
@@ -50,7 +50,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           gap: '2px',
-          height: '12px', // 减少高度
+          height: '12px', // Reduce height
           minWidth: 0,
         }}
       >
@@ -64,8 +64,8 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             whiteSpace: 'nowrap',
             lineHeight: '14px',
             cursor: disabled ? 'not-allowed' : 'default',
-            minWidth: 0, // 允许收缩
-            flex: '1 1 auto', // 弹性布局
+            minWidth: 0, // Allow shrinking
+            flex: '1 1 auto', // Flexible layout
           }}
         >
           {label}

@@ -169,7 +169,7 @@ export const WaveSettings: React.FC<WaveSettingsProps> = ({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', // 减小最小宽度以适应小屏幕
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', // Reduce minimum width for small screens
               gap: '12px',
               width: '100%',
               maxWidth: '100%',

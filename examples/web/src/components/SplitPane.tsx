@@ -12,9 +12,9 @@ interface SplitPaneProps {
 export const SplitPane: React.FC<SplitPaneProps> = ({
   left,
   right,
-  defaultLeftWidth = 320, // 减少默认宽度适应紧凑设计
-  minLeftWidth = 300, // 减少最小宽度
-  maxLeftWidth = 450, // 减少最大宽度
+  defaultLeftWidth = 320, // Reduce default width for compact design
+  minLeftWidth = 300, // Reduce minimum width
+  maxLeftWidth = 450, // Reduce maximum width
   className = '',
 }) => {
   const [leftWidth, setLeftWidth] = useState(defaultLeftWidth);
@@ -90,7 +90,7 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
         {left}
       </div>
 
-      {/* Splitter - 隐蔽的分割器 */}
+      {/* Splitter - Hidden divider */}
       {/* biome-ignore lint/a11y/useSemanticElements: Interactive resizable splitter requires div for mouse events */}
       <div
         role="separator"
@@ -102,9 +102,9 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
         tabIndex={0}
         onMouseDown={handleMouseDown}
         style={{
-          width: '2px', // 减少宽度
+          width: '2px', // Reduce width
           height: '100%',
-          backgroundColor: 'transparent', // 默认透明
+          backgroundColor: 'transparent', // Default transparent
           cursor: 'col-resize',
           position: 'relative',
           flexShrink: 0,
@@ -112,7 +112,7 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
         }}
         onMouseEnter={(e) => {
           if (!isDragging) {
-            e.currentTarget.style.backgroundColor = '#444'; // 悬停时显示淡色
+            e.currentTarget.style.backgroundColor = '#444'; // Show light color on hover
           }
         }}
         onMouseLeave={(e) => {
@@ -121,7 +121,7 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
           }
         }}
       >
-        {/* 移除明显的指示器 */}
+        {/* Remove obvious indicators */}
       </div>
 
       {/* Right Panel */}
@@ -130,7 +130,7 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
           flex: 1,
           height: '100%',
           overflow: 'hidden',
-          /* 与body背景保持一致的微妙渐变 */
+          /* Subtle gradient consistent with body background */
           background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%)',
         }}
       >

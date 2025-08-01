@@ -1,4 +1,4 @@
-import { type AudioSource, type AudioSourceInput, useAudioSource } from '@audiowave/react';
+import { type AudioSource, type AudioSourceInput, useMediaAudio } from '@audiowave/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AudioProcessingOptions } from '../types/audioProcessing';
 
@@ -63,8 +63,8 @@ export function useAudio(): UseAudioReturn {
     [rawAudioSource, handleAudioSourceError]
   );
 
-  // Use the standardized useAudioSource hook from React package
-  const { source: audioSource } = useAudioSource(audioSourceOptions);
+  // Use the standardized useMediaAudio hook from React package
+  const { source: audioSource } = useMediaAudio(audioSourceOptions);
 
   const mediaElementRef = useRef<HTMLAudioElement | HTMLVideoElement | null>(null);
 

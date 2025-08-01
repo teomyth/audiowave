@@ -27,7 +27,7 @@ export const FormGroup: React.FC<FormGroupProps> = ({
       style={{
         border: '1px dashed #444',
         borderRadius: '6px',
-        padding: '10px 6px 6px 6px', // 减少内边距
+        padding: '10px 6px 6px 6px', // Reduce padding
         margin: '0',
         backgroundColor: disabled ? '#0f0f0f' : '#1a1a1a',
         boxShadow: '0 1px 4px rgba(0,0,0,0.2)',

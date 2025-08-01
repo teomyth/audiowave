@@ -112,7 +112,7 @@ function App() {
           alignItems: 'center',
           padding: '12px 20px',
           borderBottom: '1px solid #333',
-          background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%)', // 与整体背景保持一致
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%)', // Consistent with overall background
           flexShrink: 0,
           marginTop: error ? '60px' : '0',
         }}
@@ -127,7 +127,7 @@ function App() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              justifyContent: 'flex-start', // 确保内容靠左
+              justifyContent: 'flex-start', // Ensure content aligns left
             }}
           >
             <WaveformIcon size={20} color="#00bcd4" />
@@ -138,7 +138,7 @@ function App() {
               margin: '4px 0 0 0',
               color: '#888',
               fontSize: '12px',
-              textAlign: 'left', // 确保副标题也靠左
+              textAlign: 'left', // Ensure subtitle also aligns left
             }}
           >
             Real-time Audio Visualization
@@ -158,7 +158,7 @@ function App() {
             }}
             title="View on GitHub"
           >
-            <GitHubIcon size={40} /> {/* 进一步增大图标尺寸 */}
+            <GitHubIcon size={40} /> {/* Further increase icon size */}
           </a>
           <a
             href="https://www.npmjs.com/package/@audiowave/react"
@@ -172,7 +172,7 @@ function App() {
             }}
             title="View on NPM"
           >
-            <NPMIcon size={44} /> {/* 进一步增大图标尺寸 */}
+            <NPMIcon size={44} /> {/* Further increase icon size */}
           </a>
         </div>
       </div>
@@ -231,8 +231,8 @@ function App() {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginBottom: '16px', // 减少底部间距
-                  minHeight: '200px', // 确保有足够的显示空间
+                  marginBottom: '16px', // Reduce bottom margin
+                  minHeight: '200px', // Ensure sufficient display space
                 }}
               >
                 <AudioWave
@@ -262,7 +262,7 @@ function App() {
                 />
               </div>
 
-              {/* Audio Controls - 紧接着波形显示 */}
+              {/* Audio Controls - Right after waveform display */}
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <AudioControls
                   status={status}
@@ -275,7 +275,7 @@ function App() {
                 />
               </div>
 
-              {/* 底部填充空间 */}
+              {/* Bottom padding space */}
               <div style={{ flex: 1 }} />
             </div>
           }

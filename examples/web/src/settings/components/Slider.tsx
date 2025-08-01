@@ -80,7 +80,7 @@ export const Slider: React.FC<SliderProps> = ({
   return (
     <div
       className={`ui-slider ${className}`}
-      style={{ display: 'flex', flexDirection: 'column', gap: '2px' }} // 减少间距
+      style={{ display: 'flex', flexDirection: 'column', gap: '2px' }} // Reduce spacing
     >
       <div
         style={{
@@ -88,7 +88,7 @@ export const Slider: React.FC<SliderProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           gap: '2px',
-          height: '12px', // 减少高度
+          height: '12px', // Reduce height
         }}
       >
         <label

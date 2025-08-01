@@ -30,8 +30,8 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
           overflow: 'hidden',
           border: '1px solid #444',
           backgroundColor: '#1a1a1a',
-          maxWidth: '280px', // 限制最大宽度，与其他控件保持一致
-          width: 'fit-content', // 根据内容调整宽度
+          maxWidth: '280px', // Limit max width, consistent with other controls
+          width: 'fit-content', // Adjust width based on content
         }}
       >
         {options.map((option, index) => (
@@ -41,7 +41,7 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
             onClick={() => !disabled && onChange(option.value)}
             disabled={disabled}
             style={{
-              padding: '8px 16px', // 增加左右内边距，减少flex: 1
+              padding: '8px 16px', // Increase horizontal padding, reduce flex: 1
               border: 'none',
               backgroundColor: value === option.value ? '#00bcd4' : 'transparent',
               color: value === option.value ? '#000' : '#e0e0e0',
@@ -52,7 +52,7 @@ export const ButtonGroup: React.FC<ButtonGroupProps> = ({
               borderRight: index < options.length - 1 ? '1px solid #444' : 'none',
               opacity: disabled ? 0.6 : 1,
               position: 'relative',
-              whiteSpace: 'nowrap', // 防止文字换行
+              whiteSpace: 'nowrap', // Prevent text wrapping
             }}
             onMouseEnter={(e) => {
               if (!disabled && value !== option.value) {

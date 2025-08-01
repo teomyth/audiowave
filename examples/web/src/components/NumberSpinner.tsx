@@ -50,11 +50,11 @@ export const NumberSpinner: React.FC<NumberSpinnerProps> = ({
 
   const formatValue = React.useCallback(
     (val: number): string => {
-      // 如果是整数或者步长是整数，显示为整数
+      // Display as integer if value or step is integer
       if (step >= 1 && val % 1 === 0) {
         return val.toString();
       }
-      // 否则保留适当的小数位数
+      // Otherwise keep appropriate decimal places
       return val.toFixed(step < 1 ? 1 : 0);
     },
     [step]
@@ -105,7 +105,7 @@ export const NumberSpinner: React.FC<NumberSpinnerProps> = ({
         disabled={disabled}
         style={{
           width: '100%',
-          padding: '4px 24px 4px 8px', // 右侧留空间给按钮
+          padding: '4px 24px 4px 8px', // Leave space on right for buttons
           fontSize: '12px',
           border: '1px solid #444',
           borderRadius: '3px',
@@ -116,7 +116,7 @@ export const NumberSpinner: React.FC<NumberSpinnerProps> = ({
         }}
       />
 
-      {/* 上下箭头按钮 */}
+      {/* Up/down arrow buttons */}
       <div
         style={{
           position: 'absolute',
@@ -128,7 +128,7 @@ export const NumberSpinner: React.FC<NumberSpinnerProps> = ({
           width: '18px',
         }}
       >
-        {/* 向上箭头 */}
+        {/* Up arrow */}
         <button
           type="button"
           onClick={handleIncrement}
@@ -158,7 +158,7 @@ export const NumberSpinner: React.FC<NumberSpinnerProps> = ({
           ▲
         </button>
 
-        {/* 向下箭头 */}
+        {/* Down arrow */}
         <button
           type="button"
           onClick={handleDecrement}
