@@ -19,6 +19,7 @@ Interactive demonstration of real-time audio visualization in web browsers using
   - Waveform appearance settings (colors, dimensions, animation)
   - Real-time configuration changes
   - Multiple visualization styles
+  - Amplitude calculation modes (Peak, RMS, Adaptive)
 - **Developer Features**:
   - Performance monitoring
   - Error handling and display
@@ -156,6 +157,51 @@ function AudioFileExample() {
   );
 }
 ```
+
+### Amplitude Mode Comparison
+
+```tsx
+import { AudioWave, useAudioSource } from '@audiowave/react';
+import { useState, useRef } from 'react';
+
+function AmplitudeModeComparison() {
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const { source } = useAudioSource({ source: mediaStream });
+
+  return (
+    <div>
+      <h3>Peak Mode (Default)</h3>
+      <AudioWave
+        source={source}
+        amplitudeMode="peak"
+        height={100}
+        barColor="#00bcd4"
+      />
+
+      <h3>RMS Mode (Perceptual Loudness)</h3>
+      <AudioWave
+        source={source}
+        amplitudeMode="rms"
+        height={100}
+        barColor="#ff9800"
+      />
+
+      <h3>Adaptive Mode (Auto-scaling)</h3>
+      <AudioWave
+        source={source}
+        amplitudeMode="adaptive"
+        height={100}
+        barColor="#4caf50"
+      />
+    </div>
+  );
+}
+```
+
+**Mode Characteristics:**
+- **Peak**: High responsiveness, shows all audio peaks clearly
+- **RMS**: Smoother visualization, better represents perceived volume
+- **Adaptive**: Automatically adjusts to varying audio levels
 
 ## Browser Requirements
 

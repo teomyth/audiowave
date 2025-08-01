@@ -7,6 +7,8 @@ A lightweight, performant React component library for audio waveform visualizati
 ## ✨ Features
 
 - **Real-time visualization** - Live audio waveform rendering at 60fps
+- **Multiple amplitude modes** - Peak, RMS (perceptual loudness), and Adaptive scaling
+- **Enhanced RMS processing** - Smooth noise floor transition for natural quiet environments
 - **Cross-platform** - Web Audio API + Electron native audio
 - **TypeScript first** - Full type safety and IntelliSense
 - **Zero dependencies** - Lightweight and fast
@@ -114,6 +116,7 @@ The main visualization component for rendering audio waveforms.
 | `gap` | `number` | `1` | Gap between frequency bars |
 | `color` | `string` | `"#00ff00"` | Color of the waveform bars |
 | `backgroundColor` | `string` | `"transparent"` | Background color of the canvas |
+| `amplitudeMode` | `'peak' \| 'rms' \| 'adaptive'` | `'peak'` | Amplitude calculation method |
 | `isPaused` | `boolean` | `false` | Whether to freeze the waveform animation |
 | `className` | `string` | `undefined` | CSS class name for the canvas element |
 | `style` | `CSSProperties` | `undefined` | Inline styles for the canvas element |
@@ -153,6 +156,61 @@ const { source, error } = useAudioSource({
 |----------|------|-------------|
 | `source` | `AudioSource \| null` | Audio source for AudioWave component |
 | `error` | `Error \| null` | Error object if audio processing fails |
+
+### Amplitude Calculation Modes
+
+AudioWave supports three different amplitude calculation methods to suit different use cases:
+
+#### Peak Mode (Default)
+
+```tsx
+<AudioWave source={source} amplitudeMode="peak" />
+```
+
+- **Best for**: General-purpose visualization, music, dynamic content
+- **Behavior**: Uses peak amplitude values from frequency data
+- **Characteristics**: High responsiveness, shows all audio peaks clearly
+- **Backward compatible**: Default mode, maintains existing behavior
+
+#### RMS Mode (Perceptual Loudness)
+
+```tsx
+<AudioWave source={source} amplitudeMode="rms" />
+```
+
+- **Best for**: Voice analysis, broadcast audio, perceptual loudness matching
+- **Behavior**: Root Mean Square calculation represents how humans perceive loudness
+- **Characteristics**: Smoother visualization, better represents perceived volume
+- **Quiet environments**: Enhanced with smooth noise floor transition (1-9 range for quiet signals, 10+ for audible content)
+
+#### Adaptive Mode (Dynamic Scaling)
+
+```tsx
+<AudioWave source={source} amplitudeMode="adaptive" />
+```
+
+- **Best for**: Varying audio levels, automatic gain adjustment, mixed content
+- **Behavior**: Dynamically adjusts scaling based on recent audio levels
+- **Characteristics**: Automatically compensates for quiet or loud audio sources
+- **Use case**: When audio levels vary significantly or are unpredictable
+
+**Example with mode switching:**
+
+```tsx
+const [amplitudeMode, setAmplitudeMode] = useState<'peak' | 'rms' | 'adaptive'>('peak');
+
+<AudioWave
+  source={source}
+  amplitudeMode={amplitudeMode}
+  height={100}
+/>
+
+<select value={amplitudeMode} onChange={(e) => setAmplitudeMode(e.target.value)}>
+  <option value="peak">Peak (Default)</option>
+  <option value="rms">RMS (Perceptual)</option>
+  <option value="adaptive">Adaptive (Auto-scaling)</option>
+</select>
+```
 
 ### Electron Integration
 

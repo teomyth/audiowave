@@ -118,6 +118,9 @@ The main visualization component - pure display, no audio control.
   borderWidth={1}            // Border width in pixels
   borderRadius={0}           // Border radius for rounded corners
 
+  // === AMPLITUDE CALCULATION ===
+  amplitudeMode="peak"       // Amplitude calculation: 'peak' | 'rms' | 'adaptive'
+
   // === ANIMATION & RENDERING ===
   speed={3}                  // Animation speed (1-6, higher = slower)
   animateCurrentPick={true}  // Enable smooth bar transitions
@@ -280,6 +283,84 @@ const [isPaused, setIsPaused] = useState(false);
 ```
 
 **Important:** These controls only affect the visualization display, not your audio source.
+
+## Amplitude Calculation Modes
+
+AudioWave supports three different amplitude calculation methods for different visualization needs:
+
+### Peak Mode (Default)
+
+```tsx
+<AudioWave source={source} amplitudeMode="peak" />
+```
+
+- **Best for**: General-purpose visualization, music, dynamic content
+- **Behavior**: Uses peak amplitude values from frequency data
+- **Characteristics**: High responsiveness, shows all audio peaks clearly
+- **Backward compatible**: Default mode, maintains existing behavior
+
+### RMS Mode (Perceptual Loudness)
+
+```tsx
+<AudioWave source={source} amplitudeMode="rms" />
+```
+
+- **Best for**: Voice analysis, broadcast audio, perceptual loudness matching
+- **Behavior**: Root Mean Square calculation represents how humans perceive loudness
+- **Characteristics**: Smoother visualization, better represents perceived volume
+- **Quiet environments**: Enhanced with smooth noise floor transition
+  - Range 1-9: Quiet signals with exponential scaling
+  - Range 10+: Audible signals with logarithmic scaling
+  - Natural baseline (1) represents environmental noise floor
+
+### Adaptive Mode (Dynamic Scaling)
+
+```tsx
+<AudioWave source={source} amplitudeMode="adaptive" />
+```
+
+- **Best for**: Varying audio levels, automatic gain adjustment, mixed content
+- **Behavior**: Dynamically adjusts scaling based on recent audio levels
+- **Characteristics**: Automatically compensates for quiet or loud audio sources
+- **Use case**: When audio levels vary significantly or are unpredictable
+
+### Mode Switching Example
+
+```tsx
+import { useState } from 'react';
+import { AudioWave, useAudioSource } from '@audiowave/react';
+
+function AmplitudeModeDemo() {
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [amplitudeMode, setAmplitudeMode] = useState<'peak' | 'rms' | 'adaptive'>('peak');
+
+  const { source } = useAudioSource({ source: mediaStream });
+
+  return (
+    <div>
+      <AudioWave
+        source={source}
+        amplitudeMode={amplitudeMode}
+        height={120}
+        barWidth={2}
+        gap={1}
+      />
+
+      <div>
+        <label>Amplitude Mode:</label>
+        <select
+          value={amplitudeMode}
+          onChange={(e) => setAmplitudeMode(e.target.value as any)}
+        >
+          <option value="peak">Peak (Default)</option>
+          <option value="rms">RMS (Perceptual)</option>
+          <option value="adaptive">Adaptive (Auto-scaling)</option>
+        </select>
+      </div>
+    </div>
+  );
+}
+```
 
 ## Best Practices
 

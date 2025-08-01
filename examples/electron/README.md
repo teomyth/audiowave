@@ -17,6 +17,7 @@ Demonstrates high-performance native audio capture and real-time visualization i
   - Audio device selection and control
   - Customizable waveform settings
   - Real-time configuration changes
+  - Amplitude calculation modes (Peak, RMS, Adaptive)
   - Error handling and status display
 
 ## Quick Start
@@ -110,6 +111,48 @@ export default function WebAudioExample() {
   );
 }
 ```
+
+### Amplitude Mode Configuration
+
+```tsx
+import { AudioWave } from '@audiowave/react';
+import { useIPCAudio } from '@audiowave/electron';
+import { useState } from 'react';
+
+export default function AmplitudeModeExample() {
+  const { source } = useIPCAudio({ deviceId: 'default' });
+  const [amplitudeMode, setAmplitudeMode] = useState<'peak' | 'rms' | 'adaptive'>('peak');
+
+  return (
+    <div>
+      <div>
+        <label>Amplitude Mode:</label>
+        <select
+          value={amplitudeMode}
+          onChange={(e) => setAmplitudeMode(e.target.value as any)}
+        >
+          <option value="peak">Peak (Default)</option>
+          <option value="rms">RMS (Perceptual)</option>
+          <option value="adaptive">Adaptive (Auto-scaling)</option>
+        </select>
+      </div>
+
+      <AudioWave
+        source={source}
+        amplitudeMode={amplitudeMode}
+        height={200}
+        barColor="#00bcd4"
+        backgroundColor="#1a1a1a"
+      />
+    </div>
+  );
+}
+```
+
+**Recommended modes for desktop audio:**
+- **RMS**: Best for system audio and music playback
+- **Peak**: Good for monitoring audio levels and peaks
+- **Adaptive**: Useful for varying system audio levels
 
 ## Platform Support
 
