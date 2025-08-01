@@ -45,6 +45,9 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage --run"
   },
+  "dependencies": {
+    "@audiowave/core": "workspace:*"
+  },
   "peerDependencies": {
     "react": ">=16.8.0",
     "react-dom": ">=16.8.0"

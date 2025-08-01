@@ -15,18 +15,23 @@ export { AudioWave } from './components';
 // HOOKS EXPORTS
 // ============================================================================
 
+export { useCustomAudio } from './hooks';
+export type {
+  CustomAudioReturn,
+  UseCustomAudioOptions,
+} from './hooks/useCustomAudio';
 // Universal audio source management (NEW - recommended)
 export type {
   AudioSourceInput,
-  UseAudioSourceOptions,
-  UseAudioSourceReturn,
-} from './hooks/useAudioSource';
+  UseMediaAudioOptions,
+  UseMediaAudioReturn,
+} from './hooks/useMediaAudio';
 export {
   useAudioNodeSource,
-  useAudioSource,
+  useMediaAudio,
   useMediaElementSource,
   useMediaStreamSource,
-} from './hooks/useAudioSource';
+} from './hooks/useMediaAudio';
 
 // Note: useUserMedia has been removed - use useAudioSource instead
 
@@ -156,3 +161,16 @@ export const DEFAULT_VISUALIZER_PROPS = {
   onlyActive: false,
   amplitudeMode: 'peak',
 } as const;
+
+// ============================================================================
+// CORE TYPES RE-EXPORTS
+// ============================================================================
+
+// Re-export core types for convenience
+export type {
+  AudioConfig,
+  AudioDataInput,
+  AudioDataPacket,
+  AudioDataProvider,
+  AudioDeviceInfo,
+} from '@audiowave/core';

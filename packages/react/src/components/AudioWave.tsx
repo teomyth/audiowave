@@ -83,7 +83,7 @@ export const AudioWave = forwardRef<AudioWaveController, AudioWaveProps>(
     const picksRef = useRef<Array<WaveformDataPoint | null>>([]);
     const indexSpeedRef = useRef<number>(formattedSpeed);
     const indexRef = useRef<number>(formattedBarWidth);
-    const index2Ref = useRef<number>(formattedBarWidth); // 用于平滑速度控制
+    const index2Ref = useRef<number>(formattedBarWidth); // For smooth speed control
 
     // Component state
     const [canvasDimensions, setCanvasDimensions] = useState({ width: 0, height: 0 });

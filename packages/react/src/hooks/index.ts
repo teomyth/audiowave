@@ -10,12 +10,22 @@
 
 export type {
   AudioSourceInput,
-  UseAudioSourceOptions,
-  UseAudioSourceReturn,
-} from './useAudioSource';
+  UseMediaAudioOptions,
+  UseMediaAudioReturn,
+} from './useMediaAudio';
 export {
   useAudioNodeSource,
-  useAudioSource,
+  useMediaAudio,
   useMediaElementSource,
   useMediaStreamSource,
-} from './useAudioSource';
+} from './useMediaAudio';
+
+// ============================================================================
+// PROVIDER AUDIO SOURCE HOOKS
+// ============================================================================
+
+export type {
+  CustomAudioReturn,
+  UseCustomAudioOptions,
+} from './useCustomAudio';
+export { useCustomAudio } from './useCustomAudio';

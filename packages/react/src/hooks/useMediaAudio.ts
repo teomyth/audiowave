@@ -20,14 +20,14 @@ export type AudioSourceInput =
   | AudioSource
   | null;
 
-export interface UseAudioSourceOptions {
+export interface UseMediaAudioOptions {
   /** Audio source to manage (any supported type) */
   source?: AudioSourceInput;
   /** Callback function triggered on error */
   onError?: (error: Error) => void;
 }
 
-export interface UseAudioSourceReturn {
+export interface UseMediaAudioReturn {
   /** Standardized AudioSource for AudioWave component */
   source: AudioSource | null;
   /** Any error that occurred */
@@ -40,7 +40,7 @@ export interface UseAudioSourceReturn {
  * Perfect for integrating with external recording software, media players,
  * or any application that already has audio sources and just needs visualization.
  */
-export function useAudioSource(options: UseAudioSourceOptions = {}): UseAudioSourceReturn {
+export function useMediaAudio(options: UseMediaAudioOptions = {}): UseMediaAudioReturn {
   // ========================================
   // STATE MANAGEMENT
   // ========================================
@@ -168,9 +168,9 @@ export function useAudioSource(options: UseAudioSourceOptions = {}): UseAudioSou
  */
 export function useMediaStreamSource(
   stream: MediaStream | null,
-  options: Omit<UseAudioSourceOptions, 'source'> = {}
+  options: Omit<UseMediaAudioOptions, 'source'> = {}
 ) {
-  return useAudioSource({ ...options, source: stream });
+  return useMediaAudio({ ...options, source: stream });
 }
 
 /**
@@ -178,9 +178,9 @@ export function useMediaStreamSource(
  */
 export function useMediaElementSource(
   element: HTMLMediaElement | null,
-  options: Omit<UseAudioSourceOptions, 'source'> = {}
+  options: Omit<UseMediaAudioOptions, 'source'> = {}
 ) {
-  return useAudioSource({ ...options, source: element });
+  return useMediaAudio({ ...options, source: element });
 }
 
 /**
@@ -188,7 +188,7 @@ export function useMediaElementSource(
  */
 export function useAudioNodeSource(
   node: AudioNode | null,
-  options: Omit<UseAudioSourceOptions, 'source'> = {}
+  options: Omit<UseMediaAudioOptions, 'source'> = {}
 ) {
-  return useAudioSource({ ...options, source: node });
+  return useMediaAudio({ ...options, source: node });
 }
