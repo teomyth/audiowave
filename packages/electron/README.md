@@ -1,8 +1,46 @@
 # @audiowave/electron
 
-🖥️ **Electron main process audio bridge for AudioWave**
+## ⚠️ **DEPRECATED PACKAGE**
 
-This package enables **main process audio capture** in Electron applications. Use this when you want to capture system/desktop audio through the main process and transmit it to the renderer process via IPC.
+**This package is deprecated and no longer maintained.** Please migrate to the new approach using `@audiowave/react` with `useCustomAudio`.
+
+### 🔄 **Migration Guide**
+
+**Old approach** (deprecated):
+```typescript
+import { useIPCAudio } from '@audiowave/electron';
+const { source } = useIPCAudio({ deviceId: 'default' });
+```
+
+**New approach** (recommended):
+```typescript
+import { useCustomAudio } from '@audiowave/react';
+
+// Create a custom provider for Electron IPC
+const electronProvider = useMemo(() => createElectronProvider(), []);
+const { source } = useCustomAudio({
+  provider: electronProvider,
+  deviceId: 'default',
+});
+```
+
+### 📦 **What to use instead**
+
+- **For Electron apps**: Use `@audiowave/react` with `useCustomAudio` and a custom provider
+- **For web apps**: Use `@audiowave/react` with `useMediaAudio`
+- **For custom integrations**: Implement your own provider using `@audiowave/core`
+
+### 📚 **Migration Resources**
+
+- See the [Electron example](../../examples/electron) for the new implementation
+- Check the [@audiowave/react documentation](../react/README.md) for `useCustomAudio`
+- Review [@audiowave/core documentation](../core/README.md) for custom providers
+
+---
+
+## 🖥️ **Legacy Documentation** (for reference only)
+
+This package enabled **main process audio capture** in Electron applications. Use this when you want to capture system/desktop audio through the main process and transmit it to the renderer process via IPC.
 
 ## When to Use This Package
 
