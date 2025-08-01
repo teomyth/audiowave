@@ -1,6 +1,6 @@
 {
   "name": "@audiowave/electron",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "⚠️ DEPRECATED: Use @audiowave/react with useCustomAudio instead. This package is no longer maintained.",
   "keywords": [
     "electron",
