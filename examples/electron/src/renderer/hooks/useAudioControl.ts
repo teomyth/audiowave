@@ -2,12 +2,12 @@ import { useCallback, useState } from 'react';
 
 export type AudioStatus = 'idle' | 'active' | 'paused';
 
-export interface ElectronAudioControlOptions {
+export interface AudioControlOptions {
   /** Device ID to control (default: 'default') */
   deviceId?: string;
 }
 
-export interface ElectronAudioControlReturn {
+export interface AudioControlReturn {
   status: AudioStatus;
   isActive: boolean;
   error: string | null;
@@ -20,12 +20,9 @@ export interface ElectronAudioControlReturn {
 }
 
 /**
- * Hook for controlling Electron audio device
- * This handles the device control that was removed from useNativeAudio
+ * Hook for controlling desktop audio device
  */
-export function useElectronAudioControl(
-  options: ElectronAudioControlOptions = {}
-): ElectronAudioControlReturn {
+export function useAudioControl(options: AudioControlOptions = {}): AudioControlReturn {
   const deviceId = options.deviceId || 'default';
   const [status, setStatus] = useState<AudioStatus>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +54,7 @@ export function useElectronAudioControl(
       setStatus('active');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      console.error('Failed to start Electron audio:', err);
+      console.error('Failed to start audio:', err);
       setError(errorMessage);
       throw err;
     }
@@ -79,7 +76,7 @@ export function useElectronAudioControl(
       try {
         await electronAPI.stopAudio(deviceId);
       } catch (err) {
-        console.error('Failed to stop Electron audio:', err);
+        console.error('Failed to stop audio:', err);
       }
     }
     setStatus('idle');

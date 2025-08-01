@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import { electronApp, is, optimizer } from '@electron-toolkit/utils';
 import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 import icon from '../../resources/icon.png?asset';
-import type { AudioCaptureConfig } from './audioManager';
+import type { AudioCaptureConfig } from './audioCapture';
 
 // Keep a global reference of the window object
 let mainWindow: BrowserWindow | null = null;
@@ -41,10 +41,6 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow?.show();
-    // DevTools can be opened manually with F12 or Ctrl+Shift+I
-    // if (is.dev) {
-    //   mainWindow?.webContents.openDevTools();
-    // }
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -109,9 +105,9 @@ app.on('web-contents-created', (_, contents) => {
 // Handle app protocol for deep linking (optional)
 app.setAsDefaultProtocolClient('audiowave');
 
-// Import audio bridge and local audio manager
-import type { AudioDeviceInfo } from '@audiowave/electron/main';
-import { AudioManager } from './audioManager';
+// Import audio capture
+import type { AudioDeviceInfo } from '@audiowave/core';
+import { AudioCapture } from './audioCapture';
 
 // Define types for IPC communication
 export interface SystemInfo {
@@ -120,13 +116,13 @@ export interface SystemInfo {
   audioDevices: AudioDeviceInfo[];
 }
 
-// Initialize audio manager
-const audioManager = new AudioManager();
+// Initialize audio capture
+const audioCapture = new AudioCapture();
 
 // IPC Handlers (standardized naming with deviceId support)
 ipcMain.handle('audio:start', async (_, deviceId: string = 'default') => {
   try {
-    await audioManager.start(deviceId);
+    await audioCapture.start();
     return { success: true };
   } catch (error) {
     console.error(`Failed to start audio for device ${deviceId}:`, error);
@@ -136,7 +132,7 @@ ipcMain.handle('audio:start', async (_, deviceId: string = 'default') => {
 
 ipcMain.handle('audio:stop', async (_, deviceId: string = 'default') => {
   try {
-    await audioManager.stop(deviceId);
+    await audioCapture.stop();
     return { success: true };
   } catch (error) {
     console.error(`Failed to stop audio for device ${deviceId}:`, error);
@@ -146,7 +142,7 @@ ipcMain.handle('audio:stop', async (_, deviceId: string = 'default') => {
 
 ipcMain.handle('audio:pause', async (_, deviceId: string = 'default') => {
   try {
-    await audioManager.pause(deviceId);
+    await audioCapture.stop(); // For this simplified implementation, pause = stop
     return { success: true };
   } catch (error) {
     console.error(`Failed to pause audio for device ${deviceId}:`, error);
@@ -156,7 +152,7 @@ ipcMain.handle('audio:pause', async (_, deviceId: string = 'default') => {
 
 ipcMain.handle('audio:resume', async (_, deviceId: string = 'default') => {
   try {
-    await audioManager.resume(deviceId);
+    await audioCapture.start(); // For this simplified implementation, resume = start
     return { success: true };
   } catch (error) {
     console.error(`Failed to resume audio for device ${deviceId}:`, error);
@@ -168,7 +164,7 @@ ipcMain.handle(
   'audio:request-shared-buffer',
   async (_, config: AudioCaptureConfig, deviceId: string = 'default') => {
     try {
-      const audioBuffer = audioManager.createAudioBuffer(config, deviceId);
+      const audioBuffer = audioCapture.createAudioBuffer(config);
       return audioBuffer;
     } catch (error) {
       console.error(`Failed to create audio buffer for device ${deviceId}:`, error);
@@ -179,7 +175,7 @@ ipcMain.handle(
 
 ipcMain.handle('system:info', async (): Promise<SystemInfo> => {
   try {
-    const audioDevices = await audioManager.getAudioDevices();
+    const audioDevices = await audioCapture.getAudioDevices();
     return {
       platform: process.platform,
       version: process.version,
@@ -195,19 +191,22 @@ ipcMain.handle('system:info', async (): Promise<SystemInfo> => {
   }
 });
 
-// Forward audio events to renderer (with deviceId)
-audioManager.on('error', (deviceId: string, error: string) => {
+/**
+ * Forward audio events to renderer - essential for AudioWave integration
+ * This is where processed audio data gets sent to the React component
+ */
+audioCapture.on('error', (deviceId: string, error: string) => {
   mainWindow?.webContents.send('audio:error', deviceId, error);
 });
 
-audioManager.on('data', (deviceId: string, data: Uint8Array) => {
-  // Send audio data via IPC to renderer process with deviceId
+audioCapture.on('data', (deviceId: string, data: Uint8Array) => {
+  // Send processed audio data to renderer - this feeds the AudioWave component
   mainWindow?.webContents.send('audio:data', deviceId, data);
 });
 
 // Cleanup on app quit
 app.on('before-quit', () => {
-  audioManager.destroy();
+  audioCapture.destroy();
 });
 
 export { mainWindow };

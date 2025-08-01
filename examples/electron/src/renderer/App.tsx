@@ -1,5 +1,5 @@
-import { useIPCAudio } from '@audiowave/electron/renderer';
-import { AudioWave, type AudioWaveController } from '@audiowave/react';
+import type { AudioDataProvider } from '@audiowave/core';
+import { AudioWave, type AudioWaveController, useCustomAudio } from '@audiowave/react';
 // Import playground components and settings
 import {
   AudioControls,
@@ -14,7 +14,21 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { AudioSourceSelector, type AudioSourceType } from './components/AudioSourceSelector';
 import { AudioWaveIcon, GitHubIcon, NPMIcon } from './components/Icons';
 import { WaveformIcon } from './components/WaveformIcon';
-import { useElectronAudioControl } from './hooks/useElectronAudioControl';
+import { useAudioControl } from './hooks/useAudioControl';
+
+// Create Electron audio provider - cached to prevent recreation
+const createElectronProvider = (): AudioDataProvider => ({
+  onAudioData: (callback) => {
+    return (window as any).electronAPI.onAudioData((deviceId: string, data: Uint8Array) => {
+      callback(data);
+    });
+  },
+  onAudioError: (callback) => {
+    return (window as any).electronAPI.onAudioError((deviceId: string, error: string) => {
+      callback(error);
+    });
+  },
+});
 
 function App() {
   // AudioWave configuration state
@@ -28,11 +42,14 @@ function App() {
   // webAudio uses WebAudioSource (new architecture)
   const webAudio = useWebAudio();
 
-  // For desktop audio, we need two separate hooks:
-  // 1. Data access hook (simplified)
-  const desktopAudioData = useIPCAudio();
-  // 2. Device control hook (demo level)
-  const desktopAudioControl = useElectronAudioControl();
+  // Desktop audio: data access and device control
+  // Use useMemo to prevent provider recreation (React best practice)
+  const electronProvider = useMemo(() => createElectronProvider(), []);
+  const desktopAudioData = useCustomAudio({
+    provider: electronProvider,
+    deviceId: 'default',
+  });
+  const desktopAudioControl = useAudioControl({ deviceId: 'default' });
 
   // Select the appropriate hooks based on source type
   const audioHook =
@@ -50,12 +67,16 @@ function App() {
       audioWaveRef.current.pause();
     }
 
-    // Then pause the audio hook
-    audioHook.pause();
+    // Then pause the audio hook (note: for desktop audio, this only changes UI state)
+    if ('pause' in audioHook) {
+      audioHook.pause();
+    }
   }, [audioHook]);
 
   const handleResume = useCallback(() => {
-    audioHook.resume();
+    if ('resume' in audioHook) {
+      audioHook.resume();
+    }
     // Resume the AudioWave component as well
     if (audioWaveRef.current) {
       audioWaveRef.current.resume();
@@ -100,7 +121,7 @@ function App() {
           alignItems: 'center',
           padding: '12px 20px',
           borderBottom: '1px solid #333',
-          background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%)', // 与整体背景保持一致
+          background: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 50%, #0a0a0a 100%)', // Keep in line with the overall background
           flexShrink: 0,
           marginTop: audioHook.error ? '60px' : '0',
         }}
@@ -115,7 +136,7 @@ function App() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              justifyContent: 'flex-start', // 确保内容靠左
+              justifyContent: 'flex-start', // Make sure the content is left-hand
             }}
           >
             <WaveformIcon size={20} color="#00bcd4" />
@@ -126,7 +147,7 @@ function App() {
               margin: '4px 0 0 0',
               color: '#888',
               fontSize: '12px',
-              textAlign: 'left', // 确保副标题也靠左
+              textAlign: 'left', // Make sure the subtitle is on the left as well
             }}
           >
             Electron - High-Performance Audio Visualization
@@ -146,7 +167,7 @@ function App() {
             }}
             title="View on GitHub"
           >
-            <GitHubIcon size={40} /> {/* 进一步增大图标尺寸 */}
+            <GitHubIcon size={40} /> {/* Further enlarge the icon size */}
           </a>
           <a
             href="https://www.npmjs.com/package/@audiowave/react"
@@ -160,7 +181,7 @@ function App() {
             }}
             title="View on NPM"
           >
-            <NPMIcon size={44} /> {/* 进一步增大图标尺寸 */}
+            <NPMIcon size={44} /> {/* Further enlarge the icon size */}
           </a>
         </div>
       </div>
@@ -215,8 +236,8 @@ function App() {
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  marginBottom: '24px', // 与 AudioSource 的间距保持一致
-                  minHeight: '200px', // 确保有足够的显示空间
+                  marginBottom: '24px', // Keeps consistent with AudioSource spacing
+                  minHeight: '200px', // Make sure there is enough display space
                 }}
               >
                 <AudioWave
@@ -245,7 +266,7 @@ function App() {
                 />
               </div>
 
-              {/* Audio Controls - 紧接着波形显示 */}
+              {/* Audio Controls - Immediately after waveform display */}
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <AudioControls
                   status={audioHook.status}
@@ -257,7 +278,7 @@ function App() {
                 />
               </div>
 
-              {/* 底部填充空间 */}
+              {/* Bottom fill space */}
               <div style={{ flex: 1 }} />
             </div>
           }

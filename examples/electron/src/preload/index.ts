@@ -8,12 +8,6 @@ export interface ElectronAPI {
   pauseAudio: (deviceId?: string) => Promise<void>;
   resumeAudio: (deviceId?: string) => Promise<void>;
 
-  // Legacy audio capture methods (deprecated)
-  /** @deprecated Use startAudio() instead */
-  startAudioCapture: () => Promise<void>;
-  /** @deprecated Use stopAudio() instead */
-  stopAudioCapture: () => Promise<void>;
-
   // Audio buffer methods (with optional deviceId for multi-device support)
   requestSharedBuffer: (config: AudioCaptureConfig, deviceId?: string) => Promise<ArrayBuffer>;
   setupAudioStream: (config: AudioCaptureConfig, deviceId?: string) => Promise<ArrayBuffer>;
@@ -26,10 +20,14 @@ export interface ElectronAPI {
   getSystemInfo: () => Promise<SystemInfo>;
 }
 
+/**
+ * Audio configuration for AudioWave integration
+ * These settings control the audio capture quality and performance
+ */
 export interface AudioCaptureConfig {
-  sampleRate: number;
-  channels: number;
-  bufferSize: number;
+  sampleRate: number; // Audio sample rate (e.g., 44100 Hz)
+  channels: number; // Number of audio channels (1 = mono, 2 = stereo)
+  bufferSize: number; // Buffer size for processing (affects latency vs performance)
 }
 
 export interface SystemInfo {
@@ -41,8 +39,6 @@ export interface SystemInfo {
 export interface AudioDeviceInfo {
   id: string;
   name: string;
-  channels: number;
-  sampleRate: number;
 }
 
 // Expose the API to the renderer process
@@ -52,10 +48,6 @@ const electronAPI: ElectronAPI = {
   stopAudio: (deviceId?: string) => ipcRenderer.invoke('audio:stop', deviceId || 'default'),
   pauseAudio: (deviceId?: string) => ipcRenderer.invoke('audio:pause', deviceId || 'default'),
   resumeAudio: (deviceId?: string) => ipcRenderer.invoke('audio:resume', deviceId || 'default'),
-
-  // Legacy audio capture methods (deprecated)
-  startAudioCapture: () => ipcRenderer.invoke('audio:start', 'default'),
-  stopAudioCapture: () => ipcRenderer.invoke('audio:stop', 'default'),
 
   // Audio buffer methods (with optional deviceId)
   requestSharedBuffer: (config: AudioCaptureConfig, deviceId?: string) =>
