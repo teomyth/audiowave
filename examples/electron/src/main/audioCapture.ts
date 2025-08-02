@@ -78,6 +78,9 @@ export class AudioCapture extends EventEmitter {
       const processorConfig: AudioConfig = {
         bufferSize: this.config.bufferSize,
         skipInitialFrames: this.config.skipInitialFrames ?? 2,
+        // Audio format configuration
+        inputBitsPerSample: 32, // naudiodon2 uses 32-bit format
+        inputChannels: this.config.channels,
       };
       this.audioProcessor = new AudioProcessor(processorConfig);
     }

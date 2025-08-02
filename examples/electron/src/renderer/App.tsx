@@ -19,12 +19,12 @@ import { useAudioControl } from './hooks/useAudioControl';
 // Create Electron audio provider - cached to prevent recreation
 const createElectronProvider = (): AudioDataProvider => ({
   onAudioData: (callback) => {
-    return (window as any).electronAPI.onAudioData((deviceId: string, data: Uint8Array) => {
+    return (window as any).electronAPI.onAudioData((_deviceId: string, data: Uint8Array) => {
       callback(data);
     });
   },
   onAudioError: (callback) => {
-    return (window as any).electronAPI.onAudioError((deviceId: string, error: string) => {
+    return (window as any).electronAPI.onAudioError((_deviceId: string, error: string) => {
       callback(error);
     });
   },
