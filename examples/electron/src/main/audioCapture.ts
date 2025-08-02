@@ -12,48 +12,26 @@ import { type AudioConfig, type AudioDeviceInfo, AudioProcessor } from '@audiowa
  */
 export interface AudioCaptureConfig {
   sampleRate: number;
-  channels: number;
-  bufferSize: number;
-  skipInitialFrames?: number;
+  sampleSize: 8 | 16 | 24 | 32;
+  channelCount: number;
 }
 
 /**
- * Default configuration optimized for AudioWave visualization
+ * Default configuration for audio capture
  */
 export const DEFAULT_AUDIO_CAPTURE_CONFIG: AudioCaptureConfig = {
-  sampleRate: 44100, // CD quality audio
-  channels: 1, // Mono is sufficient for waveform visualization
-  bufferSize: 1024, // Good balance of latency and performance
-  skipInitialFrames: 2, // Skip noisy initialization frames
+  sampleRate: 48000, // 48kHz sample rate - high quality
+  sampleSize: 16, // 16-bit sample format
+  channelCount: 1, // Mono audio
 };
 
-// Import naudiodon2 dynamically to handle potential installation issues
-interface NAudioDevice {
-  id: number;
-  name: string;
-  maxInputChannels: number;
-  defaultSampleRate: number;
-}
+// Fixed internal configuration
+const FIXED_BUFFER_SIZE = 1024;
+const FIXED_SKIP_INITIAL_FRAMES = 2;
 
-interface NAudioIO {
-  on(event: 'data', callback: (data: Buffer) => void): void;
-  on(event: 'error', callback: (error: Error) => void): void;
-  start(): void;
-  quit(): void;
-}
-
-interface NAudioDon {
-  getDevices(): NAudioDevice[];
-  AudioIO: new (options: unknown) => NAudioIO;
-  SampleFormat32Bit: number;
-}
-
-let naudiodon: NAudioDon | null = null;
-try {
-  naudiodon = require('naudiodon2') as NAudioDon;
-} catch (error) {
-  console.warn('naudiodon2 not available:', error);
-}
+import type { DeviceInfo, IoStreamRead } from 'naudiodon2';
+// Import naudiodon2
+import * as naudiodon from 'naudiodon2';
 
 /**
  * AudioCapture - Desktop Audio Bridge for AudioWave
@@ -65,10 +43,29 @@ try {
  */
 export class AudioCapture extends EventEmitter {
   // Core state - simplified for focused demo
-  private audioInput: NAudioIO | null = null;
+  private audioInput: IoStreamRead | null = null;
   private audioProcessor: AudioProcessor | null = null;
   private isCapturing: boolean = false;
   private config: AudioCaptureConfig | null = null;
+
+  /**
+   * Get naudiodon sample format based on config
+   */
+  private getSampleFormat(): 8 | 16 | 24 | 32 {
+    const sampleSize = this.config?.sampleSize ?? 16;
+    switch (sampleSize) {
+      case 8:
+        return 8;
+      case 16:
+        return 16;
+      case 24:
+        return 24;
+      case 32:
+        return 32;
+      default:
+        return 16; // fallback to 16-bit
+    }
+  }
 
   /**
    * Get or create AudioProcessor for audio data processing
@@ -76,11 +73,11 @@ export class AudioCapture extends EventEmitter {
   private getOrCreateProcessor(): AudioProcessor {
     if (!this.audioProcessor && this.config) {
       const processorConfig: AudioConfig = {
-        bufferSize: this.config.bufferSize,
-        skipInitialFrames: this.config.skipInitialFrames ?? 2,
-        // Audio format configuration
-        inputBitsPerSample: 32, // naudiodon2 uses 32-bit format
-        inputChannels: this.config.channels,
+        bufferSize: FIXED_BUFFER_SIZE,
+        skipInitialFrames: FIXED_SKIP_INITIAL_FRAMES,
+        // Use sampleSize from config, fallback to 16-bit
+        inputBitsPerSample: this.config.sampleSize ?? 16,
+        inputChannels: this.config.channelCount,
       };
       this.audioProcessor = new AudioProcessor(processorConfig);
     }
@@ -92,15 +89,11 @@ export class AudioCapture extends EventEmitter {
    * Simplified for demo - returns available input devices
    */
   async getAudioDevices(): Promise<AudioDeviceInfo[]> {
-    if (!naudiodon) {
-      throw new Error('naudiodon2 is not available. Please install it: npm install naudiodon2');
-    }
-
     try {
       const devices = naudiodon.getDevices();
       return devices
-        .filter((device: NAudioDevice) => device.maxInputChannels > 0)
-        .map((device: NAudioDevice) => ({
+        .filter((device: DeviceInfo) => device.maxInputChannels > 0)
+        .map((device: DeviceInfo) => ({
           id: device.id.toString(),
           name: device.name,
         }));
@@ -117,7 +110,7 @@ export class AudioCapture extends EventEmitter {
   createAudioBuffer(config: AudioCaptureConfig): ArrayBuffer {
     this.config = config;
     // Return dummy buffer for IPC compatibility - real processing happens in data handler
-    return new ArrayBuffer(config.bufferSize);
+    return new ArrayBuffer(FIXED_BUFFER_SIZE);
   }
 
   /**
@@ -132,19 +125,15 @@ export class AudioCapture extends EventEmitter {
       return; // Already running
     }
 
-    if (!naudiodon) {
-      throw new Error('naudiodon2 is not available');
-    }
-
     try {
       // Create AudioProcessor for processing raw audio data
       this.getOrCreateProcessor();
 
-      // Setup naudiodon audio input
-      this.audioInput = new naudiodon.AudioIO({
+      // Setup naudiodon audio input using config parameters
+      this.audioInput = naudiodon.AudioIO({
         inOptions: {
-          channelCount: this.config.channels,
-          sampleFormat: naudiodon.SampleFormat32Bit,
+          channelCount: this.config.channelCount,
+          sampleFormat: this.getSampleFormat(), // Use configured sample format
           sampleRate: this.config.sampleRate,
           deviceId: -1, // Default device for demo
           closeOnError: true,
@@ -238,7 +227,7 @@ export class AudioCapture extends EventEmitter {
    * Check if naudiodon2 is available for graceful fallbacks
    */
   static isAvailable(): boolean {
-    return naudiodon !== null;
+    return true; // Always available since we import it directly
   }
 
   /**

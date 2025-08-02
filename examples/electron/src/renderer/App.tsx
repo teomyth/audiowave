@@ -11,32 +11,41 @@ import {
   useWebAudio,
 } from '@audiowave/web-example';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { AudioSourceSelector, type AudioSourceType } from './components/AudioSourceSelector';
+import { AudioSourcePanel } from './components/AudioSourcePanel';
+import type { AudioSourceType } from './components/AudioSourceSelector';
 import { AudioWaveIcon, GitHubIcon, NPMIcon } from './components/Icons';
 import { WaveformIcon } from './components/WaveformIcon';
+import { AudioConfigProvider, useAudioConfig } from './contexts/AudioConfigContext';
 import { useAudioControl } from './hooks/useAudioControl';
 
 // Create Electron audio provider - cached to prevent recreation
 const createElectronProvider = (): AudioDataProvider => ({
   onAudioData: (callback) => {
-    return (window as any).electronAPI.onAudioData((_deviceId: string, data: Uint8Array) => {
-      callback(data);
-    });
+    return (window as unknown as { electronAPI: any }).electronAPI.onAudioData(
+      (_deviceId: string, data: Uint8Array) => {
+        callback(data);
+      }
+    );
   },
   onAudioError: (callback) => {
-    return (window as any).electronAPI.onAudioError((_deviceId: string, error: string) => {
-      callback(error);
-    });
+    return (window as unknown as { electronAPI: any }).electronAPI.onAudioError(
+      (_deviceId: string, error: string) => {
+        callback(error);
+      }
+    );
   },
 });
 
-function App() {
+function AppContent() {
   // AudioWave configuration state
   const [config, setConfig] = useState<AudioWaveConfig>(DEFAULT_WAVE_CONFIG);
   const [audioSourceType, setAudioSourceType] = useState<AudioSourceType>('desktop');
 
   // AudioWave component ref for imperative control
   const audioWaveRef = useRef<AudioWaveController>(null);
+
+  // Get audio configuration from context
+  const { config: audioConfig } = useAudioConfig();
 
   // Audio hooks
   // webAudio uses WebAudioSource (new architecture)
@@ -45,11 +54,11 @@ function App() {
   // Desktop audio: data access and device control
   // Use useMemo to prevent provider recreation (React best practice)
   const electronProvider = useMemo(() => createElectronProvider(), []);
+  const desktopAudioControl = useAudioControl({ deviceId: 'default' });
   const desktopAudioData = useCustomAudio({
     provider: electronProvider,
     deviceId: 'default',
   });
-  const desktopAudioControl = useAudioControl({ deviceId: 'default' });
 
   // Select the appropriate hooks based on source type
   const audioHook =
@@ -95,13 +104,28 @@ function App() {
   }, []);
 
   // Enhanced control handlers with AudioWave component control
-  const handleStart = useCallback(
-    async (config?: any) => {
-      await audioHook.start(config);
-      // AudioWave will automatically start when source is provided
-    },
-    [audioHook]
-  );
+  const handleStart = useCallback(async () => {
+    if (audioSourceType === 'web') {
+      // For Web Audio, pass audio configuration as MediaTrackConstraints
+      const webAudioConfig = {
+        sourceType: 'microphone' as const,
+        audioProcessing: {
+          echoCancellation: true,
+          autoGainControl: true,
+          noiseSuppression: true,
+          // Add our custom audio constraints
+          sampleRate: audioConfig.sampleRate,
+          sampleSize: audioConfig.sampleSize,
+          channelCount: audioConfig.channelCount,
+        },
+      };
+      console.log('🎛️ Electron Web Audio - Starting with config:', webAudioConfig);
+      // Note: Web audio config is handled by AudioWave component
+    }
+    // For Desktop Audio, use existing config from context
+    await audioHook.start();
+    // AudioWave will automatically start when source is provided
+  }, [audioHook, audioSourceType, audioConfig]);
 
   // Create placeholder component (memoized to prevent unnecessary re-renders)
   const placeholder = useMemo(() => <AudioWaveIcon size={48} />, []);
@@ -219,33 +243,34 @@ function App() {
           }
           right={
             <div
-              style={{ height: '100%', padding: '20px', display: 'flex', flexDirection: 'column' }}
+              style={{
+                height: '100%',
+                padding: '20px',
+                overflow: 'visible', // 改为 visible 让内容自然显示
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start', // 强制从顶部开始
+                alignItems: 'stretch', // 让子元素占满宽度
+              }}
             >
-              {/* Audio Source Selector */}
-              <div style={{ marginBottom: '24px', width: '100%' }}>
-                <AudioSourceSelector
-                  current={audioSourceType}
-                  onChange={setAudioSourceType}
+              {/* Audio Source Panel */}
+              <div style={{ flexShrink: 0, marginBottom: '20px' }}>
+                <AudioSourcePanel
+                  audioSourceType={audioSourceType}
+                  onAudioSourceChange={setAudioSourceType}
+                  isRunning={audioHook.status === 'active'}
                   disabled={audioHook.status !== 'idle'}
                 />
               </div>
 
               {/* Waveform Display Area */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: '24px', // Keeps consistent with AudioSource spacing
-                  minHeight: '200px', // Make sure there is enough display space
-                }}
-              >
+              <div style={{ flexShrink: 0, marginBottom: '16px' }}>
                 <AudioWave
                   ref={audioWaveRef}
                   source={audioHook.status === 'idle' ? undefined : audioHook.source || undefined}
                   isPaused={audioHook.status === 'paused'}
                   width="100%"
-                  height={config.size.height}
+                  height={150}
                   backgroundColor={config.colors.background}
                   barColor={config.colors.primary}
                   secondaryBarColor={config.colors.secondary}
@@ -266,8 +291,8 @@ function App() {
                 />
               </div>
 
-              {/* Audio Controls - Immediately after waveform display */}
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
+              {/* Audio Controls */}
+              <div style={{ flexShrink: 0, textAlign: 'center' }}>
                 <AudioControls
                   status={audioHook.status}
                   onStart={handleStart}
@@ -278,8 +303,7 @@ function App() {
                 />
               </div>
 
-              {/* Bottom fill space */}
-              <div style={{ flex: 1 }} />
+              {/* 移除 flex 填充，让布局自然排列 */}
             </div>
           }
           defaultLeftWidth={320}
@@ -288,6 +312,14 @@ function App() {
         />
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AudioConfigProvider>
+      <AppContent />
+    </AudioConfigProvider>
   );
 }
 

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useAudioConfig } from '../contexts/AudioConfigContext';
 
 export type AudioStatus = 'idle' | 'active' | 'paused';
 
@@ -24,13 +25,14 @@ export interface AudioControlReturn {
  */
 export function useAudioControl(options: AudioControlOptions = {}): AudioControlReturn {
   const deviceId = options.deviceId || 'default';
+  const { config } = useAudioConfig();
   const [status, setStatus] = useState<AudioStatus>('idle');
   const [error, setError] = useState<string | null>(null);
 
   const isActive = status === 'active';
 
   const start = useCallback(async () => {
-    const electronAPI = (window as { electronAPI?: any }).electronAPI;
+    const electronAPI = (window as unknown as { electronAPI?: any }).electronAPI;
     if (!electronAPI) {
       throw new Error('Electron API not available');
     }
@@ -38,14 +40,7 @@ export function useAudioControl(options: AudioControlOptions = {}): AudioControl
     try {
       setError(null);
 
-      // Create audio buffer with simplified configuration
-      const config = {
-        sampleRate: 44100,
-        bufferSize: 1024,
-        channels: 1,
-      };
-
-      // Setup audio stream for specific device
+      // Setup audio stream using current config from context
       await electronAPI.setupAudioStream(config, deviceId);
 
       // Start audio capture for specific device
@@ -58,7 +53,7 @@ export function useAudioControl(options: AudioControlOptions = {}): AudioControl
       setError(errorMessage);
       throw err;
     }
-  }, [deviceId]);
+  }, [deviceId, config]);
 
   const pause = useCallback(() => {
     setStatus('paused');
@@ -71,7 +66,7 @@ export function useAudioControl(options: AudioControlOptions = {}): AudioControl
   }, [status]);
 
   const stop = useCallback(async () => {
-    const electronAPI = (window as { electronAPI?: any }).electronAPI;
+    const electronAPI = (window as unknown as { electronAPI?: any }).electronAPI;
     if (electronAPI) {
       try {
         await electronAPI.stopAudio(deviceId);

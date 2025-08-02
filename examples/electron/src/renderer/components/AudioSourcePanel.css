@@ -1,0 +1,279 @@
+/* Audio Source Panel Styles */
+.audio-source-panel {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  border: 1px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.audio-source-panel.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Header Styles */
+.selector-header {
+  background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+  border-bottom: 1px solid #333;
+  padding: 12px 16px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-content h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #e0e0e0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Source Tabs */
+.source-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.source-tab {
+  padding: 6px 12px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #ccc;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.source-tab:hover:not(:disabled) {
+  background: #333;
+  border-color: #555;
+  color: #fff;
+}
+
+.source-tab.active {
+  background: #00bcd4;
+  border-color: #00bcd4;
+  color: #000;
+  font-weight: 600;
+}
+
+.source-tab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Config Section */
+.config-section {
+  padding: 16px;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.config-item label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.config-item select,
+.config-item input {
+  padding: 6px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 11px;
+  font-family: 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+}
+
+.config-item select:focus,
+.config-item input:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.2);
+}
+
+.config-item select:disabled,
+.config-item input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Refresh Button */
+.refresh-button {
+  padding: 6px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: #333;
+  border-color: #555;
+  color: #fff;
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Source Controls Section */
+.source-controls {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* Desktop Controls */
+.desktop-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Compact Status */
+.compact-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 6px;
+  font-size: 11px;
+  color: rgba(255, 193, 7, 0.9);
+}
+
+.status-indicator {
+  color: #ff6b35;
+  font-size: 8px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Compact Configuration Row */
+.compact-config-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.compact-config-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.compact-config-item label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.compact-config-item select {
+  padding: 6px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 11px;
+  font-family: 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  transition: all 0.2s ease;
+}
+
+.compact-config-item select:focus {
+  outline: none;
+  border-color: #00bcd4;
+  box-shadow: 0 0 0 2px rgba(0, 188, 212, 0.2);
+}
+
+.compact-config-item select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Compact Reset Button */
+.compact-reset-btn {
+  padding: 6px 8px;
+  border: 1px solid #444;
+  border-radius: 4px;
+  background: #1a1a1a;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  min-width: 32px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compact-reset-btn:hover:not(:disabled) {
+  background: #333;
+  border-color: #555;
+  color: #fff;
+}
+
+.compact-reset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Web Controls */
+.web-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.compact-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(0, 188, 212, 0.1);
+  border: 1px solid rgba(0, 188, 212, 0.3);
+  border-radius: 6px;
+  font-size: 11px;
+  color: rgba(0, 188, 212, 0.9);
+}
+
+.info-icon {
+  font-size: 14px;
+}
