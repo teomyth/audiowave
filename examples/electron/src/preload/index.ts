@@ -26,8 +26,8 @@ export interface ElectronAPI {
  */
 export interface AudioCaptureConfig {
   sampleRate: number; // Audio sample rate (e.g., 44100 Hz)
-  channels: number; // Number of audio channels (1 = mono, 2 = stereo)
-  bufferSize: number; // Buffer size for processing (affects latency vs performance)
+  sampleSize: 8 | 16 | 24 | 32; // Sample format (bits per sample)
+  channelCount: number; // Number of audio channels (1 = mono, 2 = stereo)
 }
 
 export interface SystemInfo {

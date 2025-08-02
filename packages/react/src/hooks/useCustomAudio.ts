@@ -12,6 +12,8 @@ export interface UseCustomAudioOptions {
   provider: AudioDataProvider;
   /** Device ID to use for audio capture (default: 'default') */
   deviceId?: string;
+  /** External status control (optional) */
+  status?: AudioStatus;
 }
 
 /**
@@ -33,8 +35,11 @@ export interface CustomAudioReturn {
  * Device control should be handled separately by the application.
  */
 export function useCustomAudio(options: UseCustomAudioOptions): CustomAudioReturn {
-  const { provider, deviceId = 'default' } = options;
-  const [status, setStatus] = useState<AudioStatus>('active'); // Start as active
+  const { provider, deviceId = 'default', status: externalStatus } = options;
+  const [internalStatus, setInternalStatus] = useState<AudioStatus>('idle'); // Start as idle
+
+  // Use external status if provided, otherwise use internal status
+  const status = externalStatus || internalStatus;
   const [error, setError] = useState<string | null>(null);
   const audioSourceRef = useRef<AudioSource | null>(null);
   const currentAudioDataRef = useRef<Uint8Array | null>(null);
@@ -64,7 +69,10 @@ export function useCustomAudio(options: UseCustomAudioOptions): CustomAudioRetur
     // Listen for errors from provider (if supported)
     const unsubscribeError = provider.onAudioError?.((errorMessage: string) => {
       setError(errorMessage);
-      setStatus('idle');
+      // Only set internal status if no external status is provided
+      if (!externalStatus) {
+        setInternalStatus('idle');
+      }
     });
 
     return () => {

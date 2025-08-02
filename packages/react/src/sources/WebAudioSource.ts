@@ -249,7 +249,7 @@ export class WebAudioSource implements ExtendedAudioSource {
     // Initialize audio data array for time domain data
     // Time domain data requires fftSize length, not frequencyBinCount (fftSize/2)
     // Explicitly create with ArrayBuffer to ensure type compatibility
-    this.audioData = new Uint8Array(new ArrayBuffer(this.analyserNode.fftSize));
+    this.audioData = new Uint8Array(this.analyserNode.fftSize);
   }
 
   /**

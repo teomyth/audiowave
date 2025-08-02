@@ -10,7 +10,7 @@ import { useAudio } from './hooks/useAudio';
 import type { AudioWaveConfig } from './settings';
 import { DEFAULT_WAVE_CONFIG } from './settings';
 import { PropertyBasedSettings } from './settings/settings/PropertyBasedSettings';
-import { type AudioProcessingOptions, DEFAULT_AUDIO_PROCESSING } from './types/audioProcessing';
+import { type AudioProcessingOptions, DEFAULT_AUDIO_PROCESSING } from './types/audio';
 import './App.css';
 
 function App() {
