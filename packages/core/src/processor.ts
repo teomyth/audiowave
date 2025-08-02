@@ -25,14 +25,25 @@ export class AudioProcessor {
     }
 
     try {
-      // Convert input data to Float32Array
-      const samples = rawData instanceof Buffer ? convertBufferToFloat32Array(rawData) : rawData;
+      let timeDomainData: Uint8Array;
 
-      // Resample to target buffer size
-      const resampledSamples = resampleAudioData(samples as Float32Array, this.config.bufferSize);
-
-      // Convert to time domain data (0-255 range for visualization)
-      const timeDomainData = convertToTimeDomainData(resampledSamples);
+      if (rawData instanceof Buffer) {
+        // Use new one-step conversion function
+        timeDomainData = convertBufferToWaveData(
+          rawData,
+          this.config.inputBitsPerSample || 32,
+          this.config.inputChannels || 1,
+          this.config.bufferSize
+        );
+      } else {
+        // Float32Array input (Web Audio, etc.)
+        const samples = rawData as Float32Array;
+        timeDomainData = new Uint8Array(samples.length);
+        for (let i = 0; i < samples.length; i++) {
+          const normalized = Math.max(-1, Math.min(1, samples[i]));
+          timeDomainData[i] = Math.floor(128 + normalized * 127);
+        }
+      }
 
       return {
         timeDomainData,
@@ -69,14 +80,25 @@ export class AudioProcessor {
  */
 export function process(rawData: AudioDataInput, config: AudioConfig): AudioDataPacket | null {
   try {
-    // Convert input data to Float32Array
-    const samples = rawData instanceof Buffer ? convertBufferToFloat32Array(rawData) : rawData;
+    let timeDomainData: Uint8Array;
 
-    // Resample to target buffer size
-    const resampledSamples = resampleAudioData(samples as Float32Array, config.bufferSize);
-
-    // Convert to time domain data (0-255 range for visualization)
-    const timeDomainData = convertToTimeDomainData(resampledSamples);
+    if (rawData instanceof Buffer) {
+      // Use new one-step conversion function
+      timeDomainData = convertBufferToWaveData(
+        rawData,
+        config.inputBitsPerSample || 32,
+        config.inputChannels || 1,
+        config.bufferSize
+      );
+    } else {
+      // Float32Array input (Web Audio, etc.)
+      const samples = rawData as Float32Array;
+      timeDomainData = new Uint8Array(samples.length);
+      for (let i = 0; i < samples.length; i++) {
+        const normalized = Math.max(-1, Math.min(1, samples[i]));
+        timeDomainData[i] = Math.floor(128 + normalized * 127);
+      }
+    }
 
     return {
       timeDomainData,
@@ -90,62 +112,69 @@ export function process(rawData: AudioDataInput, config: AudioConfig): AudioData
 }
 
 /**
- * Convert Buffer to Float32Array with validation
+ * Convert Buffer directly to wave data (Uint8Array) for AudioWave visualization
+ * One-step conversion: format parsing + channel mixing + resampling + amplitude mapping
  */
-export function convertBufferToFloat32Array(buffer: Buffer): Float32Array {
-  // Validate buffer length for 32-bit samples
-  if (buffer.length % 4 !== 0) {
-    throw new Error(
-      `Invalid buffer length: ${buffer.length} (must be multiple of 4 for 32-bit samples)`
-    );
-  }
-
-  const sampleCount = buffer.length / 4;
-  const samples = new Float32Array(sampleCount);
-
-  // Convert Buffer to Float32Array
-  const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
-  const int32View = new Int32Array(arrayBuffer);
-
-  // Optimized conversion with constant factor
-  for (let i = 0; i < int32View.length; i++) {
-    samples[i] = int32View[i] * AUDIO_CONSTANTS.INT32_NORMALIZATION_FACTOR;
-  }
-
-  return samples;
-}
-
-/**
- * Simple audio resampling
- */
-export function resampleAudioData(samples: Float32Array, targetSize: number): Float32Array {
-  if (samples.length === targetSize) {
-    return samples;
-  }
-
-  const result = new Float32Array(targetSize);
-  const ratio = samples.length / targetSize;
+export function convertBufferToWaveData(
+  buffer: Buffer,
+  bitsPerSample: number,
+  channels: number,
+  targetSize: number
+): Uint8Array {
+  const bytesPerSample = bitsPerSample / 8;
+  const sourceSamples = buffer.length / (bytesPerSample * channels);
+  const result = new Uint8Array(targetSize);
+  const maxValue = 2 ** (bitsPerSample - 1) - 1;
+  const samplesPerBin = sourceSamples / targetSize;
 
   for (let i = 0; i < targetSize; i++) {
-    const sourceIndex = Math.floor(i * ratio);
-    result[i] = samples[Math.min(sourceIndex, samples.length - 1)];
+    const startIndex = Math.floor(i * samplesPerBin);
+    const endIndex = Math.min(Math.floor((i + 1) * samplesPerBin), sourceSamples);
+
+    let maxAmplitude = 0;
+    let representativeSample = 0;
+
+    // Find maximum amplitude (suitable for waveform display)
+    for (let j = startIndex; j < endIndex; j++) {
+      let mixedSample = 0;
+
+      // Mix channels
+      for (let ch = 0; ch < channels; ch++) {
+        const byteIndex = (j * channels + ch) * bytesPerSample;
+        let sample = 0;
+
+        switch (bitsPerSample) {
+          case 8:
+            sample = buffer.readInt8(byteIndex);
+            break;
+          case 16:
+            sample = buffer.readInt16LE(byteIndex);
+            break;
+          case 32:
+            sample = buffer.readInt32LE(byteIndex);
+            break;
+          default:
+            throw new Error(`Unsupported bits per sample: ${bitsPerSample}`);
+        }
+
+        mixedSample += sample;
+      }
+
+      mixedSample = mixedSample / channels;
+      const amplitude = Math.abs(mixedSample);
+
+      if (amplitude > maxAmplitude) {
+        maxAmplitude = amplitude;
+        representativeSample = mixedSample;
+      }
+    }
+
+    // Convert to AudioWave format: 128 as center, symmetric mapping
+    const normalized = representativeSample / maxValue; // [-1, 1]
+    result[i] = Math.floor(128 + normalized * 127);
   }
 
   return result;
-}
-
-/**
- * Convert Float32Array to Uint8Array for visualization
- */
-export function convertToTimeDomainData(samples: Float32Array): Uint8Array {
-  const timeDomainData = new Uint8Array(samples.length);
-
-  for (let i = 0; i < samples.length; i++) {
-    // Convert from [-1, 1] to [0, 255]
-    timeDomainData[i] = Math.floor((samples[i] + 1) * AUDIO_CONSTANTS.UINT8_CONVERSION_FACTOR);
-  }
-
-  return timeDomainData;
 }
 
 /**

@@ -10,6 +10,12 @@ export interface AudioConfig {
   bufferSize: number;
   /** Number of initial frames to skip to avoid initialization noise (default: 0) */
   skipInitialFrames?: number;
+
+  // 新增：音频格式配置
+  /** Input audio bits per sample (8, 16, 24, 32) - default: 32 */
+  inputBitsPerSample?: 8 | 16 | 24 | 32;
+  /** Input audio channels (1=mono, 2=stereo, etc.) - default: 1 */
+  inputChannels?: number;
 }
 
 /**

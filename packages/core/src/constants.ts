@@ -6,6 +6,8 @@ import type { AudioConfig } from './types';
 export const DEFAULT_AUDIO_CONFIG: AudioConfig = {
   bufferSize: 1024,
   skipInitialFrames: 0,
+  inputBitsPerSample: 32, // 默认32位
+  inputChannels: 1, // 默认单声道
 };
 
 /**

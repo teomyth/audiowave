@@ -19,10 +19,8 @@ export {
 // Audio processing
 export {
   AudioProcessor,
-  convertBufferToFloat32Array,
-  convertToTimeDomainData,
+  convertBufferToWaveData,
   process,
-  resampleAudioData,
   validateAudioConfig,
 } from './processor';
 // Core types
