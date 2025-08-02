@@ -7,11 +7,13 @@ A lightweight, performant React component library for audio waveform visualizati
 ## ✨ Features
 
 - **Real-time visualization** - Live audio waveform rendering at 60fps
+- **Multi-format audio support** - 8, 16, 24, 32-bit audio with multi-channel processing
 - **Multiple amplitude modes** - Peak, RMS (perceptual loudness), and Adaptive scaling
 - **Enhanced RMS processing** - Smooth noise floor transition for natural quiet environments
-- **Cross-platform** - Web Audio API + Electron native audio
+- **Cross-platform** - Web Audio API + Electron native audio + Node.js audio processing
 - **TypeScript first** - Full type safety and IntelliSense
 - **Zero dependencies** - Lightweight and fast
+- **Performance optimized** - One-step audio processing (67% fewer operations)
 - **Customizable** - Flexible styling and configuration
 - **Pure components** - No built-in controls, maximum flexibility
 
@@ -218,96 +220,75 @@ const [amplitudeMode, setAmplitudeMode] = useState<'peak' | 'rms' | 'adaptive'>(
 
 ### Electron Integration
 
-Electron applications have **two audio source options**:
+For Electron applications, use `useCustomAudio` to integrate with native audio processing:
 
-#### Option 1: Main Process Audio (System/Desktop Audio)
+#### Recommended: Main Process Audio Processing
 
-Use `@audiowave/electron` for capturing system audio through the main process:
-
-```tsx
-import { AudioWave } from '@audiowave/react';
-import { useIPCAudio } from '@audiowave/electron';
-
-function DesktopAudioApp() {
-  const { source, status, error } = useIPCAudio({ deviceId: 'default' });
-  // Device control handled by your application layer
-  return <AudioWave source={source} height={100} />;
-}
-```
-
-#### Option 2: Web Audio (Microphone/Files)
-
-Use `@audiowave/react` for browser-based audio sources:
+Process audio in the main process for better performance:
 
 ```tsx
-import { AudioWave, useAudioSource } from '@audiowave/react';
-
-function WebAudioApp() {
-  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
-  const { source } = useAudioSource({ source: mediaStream });
-  return <AudioWave source={source} height={100} />;
-}
-```
-
-#### Complete Electron Example (Main Process Audio)
-
-```tsx
-import { AudioWave } from '@audiowave/react';
-import { useIPCAudio } from '@audiowave/electron';
+import { AudioWave, useCustomAudio } from '@audiowave/react';
+import { useMemo } from 'react';
 
 function ElectronAudioApp() {
-  // Data-only hook for visualization
-  const { source, status, error, clearError } = useIPCAudio({
+  const electronProvider = useMemo(() => ({
+    onAudioData: (callback: (data: Uint8Array) => void) => {
+      const handleAudioData = (_event: any, data: Uint8Array) => {
+        callback(data);
+      };
+
+      window.electronAPI.onAudioData(handleAudioData);
+
+      return () => {
+        window.electronAPI.removeAudioDataListener?.(handleAudioData);
+      };
+    },
+    onAudioError: (callback: (error: string) => void) => {
+      const handleError = (_event: any, error: string) => {
+        callback(error);
+      };
+
+      window.electronAPI.onAudioError?.(handleError);
+
+      return () => {
+        window.electronAPI.removeAudioErrorListener?.(handleError);
+      };
+    }
+  }), []);
+
+  const { source, error } = useCustomAudio({
+    provider: electronProvider,
     deviceId: 'default'
   });
 
-  // Device control should be implemented in your application layer
-  const handleStartDevice = async () => {
-    await window.electronAPI.audio.start('default');
-  };
-
-  const handleStopDevice = async () => {
-    await window.electronAPI.audio.stop('default');
-  };
-
   return (
     <div>
-      {error && (
-        <div>
-          Error: {error}
-          <button onClick={clearError}>Clear</button>
-        </div>
-      )}
+      {error && <div>Error: {error}</div>}
       <AudioWave source={source} height={100} />
-
-      {/* Device control (implemented in your application) */}
-      <button onClick={handleStartDevice}>Start Device</button>
-      <button onClick={handleStopDevice}>Stop Device</button>
-
-      <div>Status: {status}</div>
     </div>
   );
 }
 ```
 
-#### useIPCAudio Options
+```typescript
+// Main Process - Audio processing with @audiowave/core
+import { AudioProcessor } from '@audiowave/core';
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `deviceId` | `string` | `'default'` | Audio input device identifier |
+const processor = new AudioProcessor({
+  bufferSize: 1024,
+  inputBitsPerSample: 16,  // Match your audio source
+  inputChannels: 2,        // Stereo input
+});
 
-#### useIPCAudio Returns
+audioCapture.on('data', (buffer: Buffer) => {
+  const result = processor.process(buffer);
+  if (result) {
+    mainWindow.webContents.send('audio-data', result.timeDomainData);
+  }
+});
+```
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `source` | `AudioSource \| null` | Audio data source for AudioWave component |
-| `status` | `'idle' \| 'active' \| 'paused'` | Current audio data stream status |
-| `isActive` | `boolean` | Whether audio data is being received |
-| `error` | `string \| null` | Error message if any |
-| `deviceId` | `string` | Device identifier |
-| `clearError` | `() => void` | Function to clear error state |
-
-**Important**: Device control (start/stop/pause/resume) should be implemented in your application layer using IPC calls to your main process audio management.
+See the [React package README](./packages/react/README.md#electron-integration-guide) for complete integration guide with IPC setup and preload scripts.
 
 ## 📖 Documentation
 

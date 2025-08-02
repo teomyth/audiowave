@@ -31,8 +31,8 @@ npm install @audiowave/react
 **Basic usage with microphone input:**
 
 ```tsx
-import { AudioWave, useAudioSource } from '@audiowave/react';
-import { useRef, useState } from 'react';
+import { AudioWave, useMediaAudio } from '@audiowave/react';
+import { useRef, useState, useMemo, useCallback } from 'react';
 
 export default function App() {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
@@ -40,7 +40,16 @@ export default function App() {
 
   // AudioWave handles visualization, you control the audio source
   // Note: For dynamic audio sources, memoize the options object (see Important Usage Notes)
-  const { source, error } = useAudioSource({ source: mediaStream });
+  const handleError = useCallback((error: Error) => {
+    console.error('Audio error:', error);
+  }, []);
+
+  const audioOptions = useMemo(() => ({
+    source: mediaStream,
+    onError: handleError,
+  }), [mediaStream, handleError]);
+
+  const { source, error } = useMediaAudio(audioOptions);
   const audioWaveRef = useRef<AudioWaveController>(null);
 
   const startRecording = async () => {
@@ -87,6 +96,9 @@ const { source } = useAudioSource({ source: videoElement.current });
 
 // With Web Audio API nodes
 const { source } = useAudioSource({ source: audioNode });
+
+// With custom audio data (Electron, Node.js, etc.)
+const { source } = useCustomAudio();
 ```
 
 ## API Reference
@@ -156,7 +168,7 @@ The main visualization component - pure display, no audio control.
 #### Essential Props
 
 **Audio Source:**
-- `source` - AudioSource from `useAudioSource` hook (required for visualization)
+- `source` - AudioSource from `useMediaAudio` or `useCustomAudio` hook (required for visualization)
 
 **Dimensions:**
 - `width` - Component width, supports CSS units and numbers (default: `"100%"`)
@@ -202,12 +214,12 @@ The main visualization component - pure display, no audio control.
 - `onRenderStop` - Called when rendering stops
 - `onError` - Called on render errors
 
-### useAudioSource Hook
+### useMediaAudio Hook (Recommended)
 
-Converts any audio source into visualization data.
+Converts media sources into visualization data. This is the main hook for most use cases.
 
 ```tsx
-const { source, error } = useAudioSource({
+const { source, error } = useMediaAudio({
   source: mediaStream  // MediaStream | HTMLAudioElement | HTMLVideoElement | AudioNode
 });
 ```
@@ -224,6 +236,10 @@ const { source, error } = useAudioSource({
 - `source` - AudioSource instance for AudioWave component
 - `error` - Any processing errors (Error | null)
 
+### useAudioSource Hook (Legacy)
+
+> **Note:** `useAudioSource` is an alias for `useMediaAudio` maintained for backward compatibility. New projects should use `useMediaAudio`.
+
 ### Specialized Hooks
 
 For better type safety and convenience, you can use specialized hooks:
@@ -237,7 +253,202 @@ const { source, error } = useMediaElementSource(audioElement);
 
 // For Web Audio API nodes
 const { source, error } = useAudioNodeSource(audioNode);
+
+// For custom audio data (Electron, Node.js, etc.)
+const { source } = useCustomAudio({ provider: myProvider });
 ```
+
+### useCustomAudio Hook
+
+For advanced use cases where you need to provide custom audio data (Electron apps, Node.js audio processing, custom audio pipelines), use the `useCustomAudio` hook with a custom provider:
+
+```tsx
+import { useCustomAudio } from '@audiowave/react';
+import { useMemo } from 'react';
+
+function CustomAudioApp() {
+  // Create audio data provider
+  const audioProvider = useMemo(() => ({
+    onAudioData: (callback: (data: Uint8Array) => void) => {
+      // Your audio data subscription logic
+      const unsubscribe = yourAudioSource.subscribe(callback);
+      return unsubscribe; // Return cleanup function
+    },
+    onAudioError: (callback: (error: string) => void) => {
+      // Optional error handling
+      const unsubscribe = yourAudioSource.onError(callback);
+      return unsubscribe;
+    }
+  }), []);
+
+  const { source, error } = useCustomAudio({
+    provider: audioProvider,
+    deviceId: 'default'
+  });
+
+  return (
+    <div>
+      {error && <div>Error: {error}</div>}
+      <AudioWave source={source} height={120} />
+    </div>
+  );
+}
+```
+
+**Parameters:**
+- `provider` - AudioDataProvider implementation (required)
+- `deviceId` - Device identifier (optional, default: 'default')
+
+**Returns:**
+- `source` - AudioSource instance for AudioWave component
+- `status` - Current status: 'idle' | 'active' | 'paused'
+- `error` - Error message if any
+- `isActive` - Boolean indicating if audio is active
+- `clearError` - Function to clear error state
+
+**Audio Data Format:**
+- `Uint8Array` with values in range [0, 255]
+- 128 represents silence (center value)
+- Values above 128 represent positive amplitude
+- Values below 128 represent negative amplitude
+- Array length should match your desired visualization resolution
+
+## Electron Integration Guide
+
+For Electron applications, use `useCustomAudio` with a custom provider for native audio processing:
+
+### Best Practice: Main Process Audio Processing
+
+Process audio in the main process for optimal performance:
+
+**Main Process (`main.js`):**
+
+```typescript
+import { AudioProcessor } from '@audiowave/core';
+import { ipcMain } from 'electron';
+
+class ElectronAudioCapture {
+  private audioProcessor: AudioProcessor;
+
+  constructor() {
+    this.audioProcessor = new AudioProcessor({
+      bufferSize: 1024,
+      skipInitialFrames: 2,
+      inputBitsPerSample: 32,  // naudiodon uses 32-bit
+      inputChannels: 2,        // stereo input
+    });
+
+    this.setupAudioCapture();
+  }
+
+  private setupAudioCapture() {
+    // Setup your audio capture (naudiodon, etc.)
+    audioCapture.on('data', (buffer: Buffer) => {
+      // Process audio in main process
+      const result = this.audioProcessor.process(buffer);
+
+      if (result) {
+        // Send processed data to renderer
+        mainWindow.webContents.send('audio-data', result.timeDomainData);
+      }
+    });
+  }
+}
+
+// IPC handlers
+ipcMain.handle('start-audio-capture', async () => {
+  // Start audio capture logic
+});
+
+ipcMain.handle('stop-audio-capture', async () => {
+  // Stop audio capture logic
+});
+```
+
+**Renderer Process (`renderer.tsx`):**
+
+```tsx
+import { useCustomAudio } from '@audiowave/react';
+import { useMemo } from 'react';
+
+function ElectronAudioApp() {
+  // Create provider for Electron IPC communication
+  const electronProvider = useMemo(() => ({
+    onAudioData: (callback: (data: Uint8Array) => void) => {
+      const handleAudioData = (_event: any, audioData: Uint8Array) => {
+        callback(audioData);
+      };
+
+      window.electronAPI.onAudioData(handleAudioData);
+
+      return () => {
+        window.electronAPI.removeAudioDataListener?.(handleAudioData);
+      };
+    },
+    onAudioError: (callback: (error: string) => void) => {
+      const handleError = (_event: any, error: string) => {
+        callback(error);
+      };
+
+      window.electronAPI.onAudioError?.(handleError);
+
+      return () => {
+        window.electronAPI.removeAudioErrorListener?.(handleError);
+      };
+    }
+  }), []);
+
+  const { source, error } = useCustomAudio({
+    provider: electronProvider,
+    deviceId: 'default'
+  });
+
+  const startCapture = () => {
+    window.electronAPI.startAudioCapture();
+  };
+
+  const stopCapture = () => {
+    window.electronAPI.stopAudioCapture();
+  };
+
+  return (
+    <div>
+      {error && <div>Error: {error}</div>}
+      <AudioWave source={source} height={120} />
+      <button onClick={startCapture}>Start</button>
+      <button onClick={stopCapture}>Stop</button>
+    </div>
+  );
+}
+```
+
+**Preload Script (`preload.js`):**
+
+```typescript
+import { contextBridge, ipcRenderer } from 'electron';
+
+contextBridge.exposeInMainWorld('electronAPI', {
+  startAudioCapture: () => ipcRenderer.invoke('start-audio-capture'),
+  stopAudioCapture: () => ipcRenderer.invoke('stop-audio-capture'),
+  onAudioData: (callback: (event: any, data: Uint8Array) => void) => {
+    ipcRenderer.on('audio-data', callback);
+  },
+  onAudioError: (callback: (event: any, error: string) => void) => {
+    ipcRenderer.on('audio-error', callback);
+  },
+  removeAudioDataListener: (callback: Function) => {
+    ipcRenderer.removeListener('audio-data', callback);
+  },
+  removeAudioErrorListener: (callback: Function) => {
+    ipcRenderer.removeListener('audio-error', callback);
+  }
+});
+```
+
+**Benefits of this approach:**
+- Optimal performance with minimal data transfer
+- UI responsiveness maintained
+- Single processing instance for multiple windows
 
 ## Visualization Control
 
@@ -387,7 +598,7 @@ function MyAudioApp() {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
   // This creates a new options object on every render!
-  const { source } = useAudioSource({
+  const { source } = useMediaAudio({
     source: mediaStream,
     onError: (error) => console.error('Audio error:', error)
   });
@@ -414,7 +625,7 @@ function MyAudioApp() {
   }), [mediaStream, handleAudioError]);
 
   // Step 3: Use the memoized options
-  const { source } = useAudioSource(audioSourceOptions);
+  const { source } = useMediaAudio(audioSourceOptions);
 
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -432,7 +643,7 @@ function MyAudioApp() {
 
 **Why is this required?**
 - Each render creates a new options object `{ source: mediaStream, onError: ... }`
-- `useAudioSource` sees this as a "change" and reinitializes the audio processing
+- `useMediaAudio` sees this as a "change" and reinitializes the audio processing
 - This causes the visualization to flicker and restart repeatedly, making it unusable
 - This is not a performance issue - it's a functional requirement for proper operation
 
@@ -449,7 +660,7 @@ const options = useMemo(() => ({
   onError: handleError,
 }), [yourAudioSource, handleError]);
 
-const { source } = useAudioSource(options);
+const { source } = useMediaAudio(options);
 ```
 
 ### Performance Optimization

@@ -4,10 +4,12 @@ Core audio processing utilities and types for AudioWave.
 
 ## Features
 
-- **Pure Functions**: Simple, testable audio processing functions
+- **One-Step Processing**: Direct Buffer to visualization data conversion
+- **Multi-Format Support**: 8, 16, 24, 32-bit audio with multi-channel support
 - **Type Safety**: Comprehensive TypeScript type definitions
-- **Platform Agnostic**: Works with any audio data source
+- **Platform Agnostic**: Works with any audio data source (Electron, Node.js, Web)
 - **Zero Dependencies**: Lightweight with no external dependencies
+- **Performance Optimized**: 67% fewer processing steps than traditional approaches
 
 ## Installation
 
@@ -17,25 +19,28 @@ npm install @audiowave/core
 
 ## Usage
 
-### Audio Processing with Skip Frames
+### Audio Processing with Multi-Format Support
 
 ```typescript
-import { AudioProcessor, createAudioConfig } from '@audiowave/core';
+import { AudioProcessor } from '@audiowave/core';
 
-// Create configuration
-const config = createAudioConfig({
+// Create configuration with audio format specification
+const processor = new AudioProcessor({
   bufferSize: 1024,
-  skipInitialFrames: 2  // Skip first 2 frames
+  skipInitialFrames: 2,        // Skip first 2 frames to avoid initialization noise
+  inputBitsPerSample: 16,      // 8, 16, 24, or 32-bit audio
+  inputChannels: 2,            // Stereo input (will be mixed to mono for visualization)
 });
 
-// Create processor (maintains frame count state)
-const processor = new AudioProcessor(config);
-
-// Process audio data
-const audioPacket = processor.process(rawAudioData);
+// Process Buffer data (from Electron, Node.js audio capture)
+const audioPacket = processor.process(audioBuffer);
 if (audioPacket) {
+  // timeDomainData is ready for visualization (Uint8Array)
   console.log('Processed audio data:', audioPacket.timeDomainData);
 }
+
+// Process Float32Array data (from Web Audio API)
+const webAudioPacket = processor.process(float32AudioData);
 
 // Reset when starting new stream
 processor.reset();
@@ -44,11 +49,33 @@ processor.reset();
 ### Stateless Audio Processing
 
 ```typescript
-import { processAudioDataStateless, createAudioConfig } from '@audiowave/core';
+import { process } from '@audiowave/core';
 
 // For simple processing without skip frames
-const config = createAudioConfig({ bufferSize: 1024 });
+const config = {
+  bufferSize: 1024,
+  inputBitsPerSample: 32,  // Specify input format
+  inputChannels: 1,        // Mono input
+};
+
 const audioPacket = process(rawAudioData, config);
+```
+
+### Direct Buffer Conversion
+
+```typescript
+import { convertBufferToWaveData } from '@audiowave/core';
+
+// Convert audio buffer directly to visualization data
+const waveData = convertBufferToWaveData(
+  audioBuffer,    // Buffer from audio source
+  16,            // 16-bit audio
+  2,             // Stereo
+  1024           // Target visualization size
+);
+
+// waveData is Uint8Array ready for visualization
+console.log('Wave data:', waveData); // [128, 145, 112, ...]
 ```
 
 ### Custom Audio Data Provider
@@ -114,9 +141,7 @@ console.log(validateAudioConfig(config)); // true/false
 ### Functions
 
 - `process()` - Stateless audio processing
-- `convertBufferToFloat32Array()` - Buffer conversion utility
-- `resampleAudioData()` - Audio resampling
-- `convertToTimeDomainData()` - Convert to visualization format
+- `convertBufferToWaveData()` - Direct Buffer to visualization data conversion
 - `validateAudioConfig()` - Configuration validation
 
 ### Constants
