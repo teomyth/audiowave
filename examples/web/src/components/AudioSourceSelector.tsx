@@ -2,7 +2,7 @@ import type React from 'react';
 import { useRef, useState } from 'react';
 import type { AudioSourceConfig, AudioSourceType } from '../hooks/useAudio';
 import { Toggle } from '../settings/components/Toggle';
-import type { AudioProcessingOptions } from '../types/audioProcessing';
+import type { AudioProcessingOptions } from '../types/audio';
 import './AudioSourceSelector.css';
 
 interface AudioSourceSelectorProps {
@@ -143,20 +143,60 @@ export const AudioSourceSelector: React.FC<AudioSourceSelectorProps> = ({
       <div className="source-controls">
         {sourceType === 'microphone' && (
           <>
-            <div className="compact-info">
-              <span className="info-icon">ℹ️</span>
-              <span>Browser will request microphone permission</span>
+            {/* Combined Browser Information */}
+            <div
+              style={{
+                background: 'rgba(33, 150, 243, 0.1)',
+                border: '1px solid rgba(33, 150, 243, 0.3)',
+                borderRadius: '6px',
+                padding: '10px 12px',
+                marginBottom: '12px',
+                fontSize: '11px',
+                color: '#2196f3',
+                lineHeight: '1.5',
+              }}
+            >
+              <div style={{ marginBottom: '4px' }}>
+                🔒 <strong>Permission:</strong> Browser will request microphone access
+              </div>
+              <div>
+                ⚠️ <strong>Audio Settings:</strong> Browser may override format settings with
+                hardware defaults. Check console for actual values.
+              </div>
             </div>
 
-            {/* Audio Processing Options */}
-            <div className="audio-processing-options" style={{ marginTop: '12px' }}>
+            {/* Audio Configuration - Unified Grid Layout */}
+            <div className="audio-config" style={{ marginTop: '12px' }}>
+              {/* Audio Format Information */}
               <div
                 style={{
-                  display: 'flex',
-                  flexDirection: 'row',
+                  background: 'rgba(33, 150, 243, 0.1)',
+                  border: '1px solid rgba(33, 150, 243, 0.3)',
+                  borderRadius: '6px',
+                  padding: '10px 12px',
+                  marginBottom: '16px',
+                  fontSize: '11px',
+                  color: '#2196f3',
+                  lineHeight: '1.5',
+                }}
+              >
+                <div style={{ marginBottom: '4px' }}>
+                  🎵 <strong>Audio Format:</strong> {(audioProcessing.sampleRate || 16000) / 1000}
+                  kHz / {audioProcessing.sampleSize || 16}-bit /{' '}
+                  {(audioProcessing.channelCount || 1) === 1 ? 'Mono' : 'Stereo'}
+                </div>
+                <div>
+                  ℹ️ <strong>Note:</strong> Browser will use hardware defaults. Actual format may
+                  differ from requested values.
+                </div>
+              </div>
+
+              {/* Second Row: Processing Options */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr 1fr',
                   gap: '12px',
-                  alignItems: 'center',
-                  justifyContent: 'flex-start',
                 }}
               >
                 <Toggle

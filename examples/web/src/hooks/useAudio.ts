@@ -1,6 +1,6 @@
 import { type AudioSource, type AudioSourceInput, useMediaAudio } from '@audiowave/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { AudioProcessingOptions } from '../types/audioProcessing';
+import type { AudioProcessingOptions } from '../types/audio';
 
 export type AudioSourceType = 'microphone' | 'audioFile' | 'audioUrl';
 export type AudioStatus = 'idle' | 'active' | 'paused';
@@ -126,11 +126,68 @@ export function useAudio(): UseAudioReturn {
               echoCancellation: config?.audioProcessing?.echoCancellation ?? true,
               autoGainControl: config?.audioProcessing?.autoGainControl ?? true,
               noiseSuppression: config?.audioProcessing?.noiseSuppression ?? true,
+              // Add support for audio format constraints
+              sampleRate: config?.audioProcessing?.sampleRate,
+              sampleSize: config?.audioProcessing?.sampleSize,
+              channelCount: config?.audioProcessing?.channelCount,
             };
+
+            console.log(
+              '🎤 Web Audio - Requesting getUserMedia with constraints:',
+              audioConstraints
+            );
 
             const stream = await navigator.mediaDevices.getUserMedia({
               audio: audioConstraints,
             });
+
+            // Log actual stream settings and check for constraint mismatches
+            const track = stream.getAudioTracks()[0];
+            if (track) {
+              const actualSettings = track.getSettings();
+              const appliedConstraints = track.getConstraints();
+
+              console.log('🎤 Web Audio - Actual track settings:', actualSettings);
+              console.log('🎤 Web Audio - Applied constraints:', appliedConstraints);
+
+              // Check for constraint mismatches and warn user
+              const mismatches: string[] = [];
+
+              if (
+                audioConstraints.sampleRate &&
+                actualSettings.sampleRate !== audioConstraints.sampleRate
+              ) {
+                mismatches.push(
+                  `Sample Rate: requested ${audioConstraints.sampleRate}Hz, got ${actualSettings.sampleRate}Hz`
+                );
+              }
+
+              if (
+                audioConstraints.sampleSize &&
+                actualSettings.sampleSize !== audioConstraints.sampleSize
+              ) {
+                mismatches.push(
+                  `Sample Size: requested ${audioConstraints.sampleSize}-bit, got ${actualSettings.sampleSize}-bit`
+                );
+              }
+
+              if (
+                audioConstraints.channelCount &&
+                actualSettings.channelCount !== audioConstraints.channelCount
+              ) {
+                mismatches.push(
+                  `Channel Count: requested ${audioConstraints.channelCount}, got ${actualSettings.channelCount}`
+                );
+              }
+
+              if (mismatches.length > 0) {
+                console.warn('⚠️ Web Audio - Browser constraints mismatch detected:');
+                mismatches.forEach((mismatch) => console.warn(`  - ${mismatch}`));
+                console.warn(
+                  '  Note: Browser may not support all audio format constraints. This is normal behavior.'
+                );
+              }
+            }
 
             // ✅ Set the raw audio source, useAudioSource will handle the conversion
             setRawAudioSource(stream);
