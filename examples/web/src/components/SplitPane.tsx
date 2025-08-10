@@ -60,6 +60,9 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
         document.body.style.userSelect = '';
       };
     }
+
+    // Return undefined when not dragging (satisfies TypeScript)
+    return undefined;
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (

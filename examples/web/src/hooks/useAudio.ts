@@ -79,10 +79,18 @@ export function useAudio(): UseAudioReturn {
       mediaElementRef.current = null;
     }
 
+    // Explicitly stop MediaStream tracks if we have a MediaStream
+    if (rawAudioSource instanceof MediaStream) {
+      rawAudioSource.getTracks().forEach((track) => {
+        track.stop();
+        console.log('🛑 Stopped audio track:', track.kind, track.label);
+      });
+    }
+
     // Clear the raw audio source (this will automatically clean up the AudioSource via useAudioSource)
     setRawAudioSource(null);
     setStatus('idle');
-  }, []);
+  }, [rawAudioSource]);
 
   const pause = useCallback(() => {
     if (status === 'active') {

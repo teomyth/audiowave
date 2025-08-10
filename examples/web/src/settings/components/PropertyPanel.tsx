@@ -50,7 +50,7 @@ const PropertyControl: React.FC<{
       return (
         <input
           type="checkbox"
-          checked={item.value}
+          checked={item.value as boolean}
           onChange={(e) => onChange(e.target.checked)}
           disabled={disabled}
           style={{
@@ -63,7 +63,7 @@ const PropertyControl: React.FC<{
     case 'select':
       return (
         <select
-          value={item.value}
+          value={item.value as string}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
           style={{
@@ -72,7 +72,7 @@ const PropertyControl: React.FC<{
           }}
         >
           {item.options?.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={String(option.value)} value={String(option.value)}>
               {option.label}
             </option>
           ))}
@@ -82,7 +82,7 @@ const PropertyControl: React.FC<{
     case 'number':
       return (
         <NumberSpinner
-          value={item.value}
+          value={item.value as number}
           onChange={onChange}
           disabled={disabled}
           min={item.min}
@@ -96,7 +96,7 @@ const PropertyControl: React.FC<{
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <input
             type="range"
-            value={item.value}
+            value={item.value as number}
             onChange={(e) => onChange(Number(e.target.value))}
             disabled={disabled}
             min={item.min}
@@ -104,7 +104,9 @@ const PropertyControl: React.FC<{
             step={item.step}
             style={{ flex: 1 }}
           />
-          <span style={{ fontSize: '11px', color: '#a0a0a0', minWidth: '30px' }}>{item.value}</span>
+          <span style={{ fontSize: '11px', color: '#a0a0a0', minWidth: '30px' }}>
+            {String(item.value)}
+          </span>
         </div>
       );
 
@@ -113,7 +115,7 @@ const PropertyControl: React.FC<{
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <input
             type="color"
-            value={item.value}
+            value={item.value as string}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
             style={{
@@ -126,7 +128,7 @@ const PropertyControl: React.FC<{
           />
           <input
             type="text"
-            value={item.value}
+            value={item.value as string}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
             style={{ ...baseStyle, flex: 1 }}

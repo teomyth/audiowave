@@ -1,9 +1,9 @@
 import { AudioWave, type AudioWaveController } from '@audiowave/react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { AudioControls } from './components/AudioControls';
 import { AudioSourceSelector } from './components/AudioSourceSelector';
 import { ErrorDisplay } from './components/ErrorDisplay';
-import { AudioWaveIcon, GitHubIcon, NPMIcon } from './components/Icons';
+import { GitHubIcon, NPMIcon } from './components/Icons';
 import { SplitPane } from './components/SplitPane';
 import { WaveformIcon } from './components/WaveformIcon';
 import { useAudio } from './hooks/useAudio';
@@ -96,8 +96,7 @@ function App() {
     }
   }, [sourceType]);
 
-  // Create placeholder component (memoized to prevent unnecessary re-renders)
-  const placeholder = useMemo(() => <AudioWaveIcon size={48} />, []);
+  // Placeholder removed - no default icon needed
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -257,7 +256,6 @@ function App() {
                   borderColor={config.colors.border}
                   borderWidth={config.size.borderWidth}
                   borderRadius={config.size.borderRadius}
-                  placeholder={placeholder}
                   showPlaceholderBackground={true}
                 />
               </div>

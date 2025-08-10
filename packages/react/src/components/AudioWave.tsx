@@ -540,7 +540,7 @@ export const AudioWave = forwardRef<AudioWaveController, AudioWaveProps>(
         />
 
         {/* Placeholder content when no source AND not paused */}
-        {!source && !isPaused && internalState !== 'paused' && (
+        {!source && !isPaused && internalState !== 'paused' && placeholder && (
           <div
             style={{
               position: 'absolute',
@@ -552,23 +552,7 @@ export const AudioWave = forwardRef<AudioWaveController, AudioWaveProps>(
               pointerEvents: 'none',
             }}
           >
-            {placeholder || (
-              // Default placeholder - simple wave icon
-              <svg
-                width={48}
-                height={48}
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-label="Audio waveform placeholder"
-              >
-                <title>Audio waveform placeholder</title>
-                <rect x="2" y="8" width="2" height="8" rx="1" />
-                <rect x="6" y="4" width="2" height="16" rx="1" />
-                <rect x="10" y="6" width="2" height="12" rx="1" />
-                <rect x="14" y="2" width="2" height="20" rx="1" />
-                <rect x="18" y="7" width="2" height="10" rx="1" />
-              </svg>
-            )}
+            {placeholder}
           </div>
         )}
       </div>
