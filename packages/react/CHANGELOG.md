@@ -1,5 +1,20 @@
 # @audiowave/react
 
+## 0.6.1
+
+### Patch Changes
+
+- 3774a7c: Improve guidance and default expectations for stopping microphone capture when using MediaStream sources.
+
+  - Ensure integrations stop `MediaStreamTrack`s on stop so the browser mic indicator turns off
+  - No public API changes; example app updated accordingly
+
+- 3774a7c: Remove default placeholder icon from AudioWave and only render a placeholder when the `placeholder` prop is explicitly provided.
+
+  - Visual change only: the waveform area no longer shows a default SVG icon when there is no source
+  - No API changes; existing `placeholder` prop continues to work as before
+  - Examples were updated accordingly (not part of the published package)
+
 ## 0.6.0
 
 ### Minor Changes
