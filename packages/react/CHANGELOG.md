@@ -1,5 +1,13 @@
 # @audiowave/react
 
+## 0.6.2
+
+### Patch Changes
+
+- 93afca3: Fix Electron desktop audio waveform not displaying and upgrade all dependencies to latest versions
+- Updated dependencies [93afca3]
+  - @audiowave/core@0.3.1
+
 ## 0.6.1
 
 ### Patch Changes

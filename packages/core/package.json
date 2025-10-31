@@ -1,6 +1,6 @@
 {
   "name": "@audiowave/core",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Core audio processing utilities and interfaces for AudioWave",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
