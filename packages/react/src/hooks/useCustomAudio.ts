@@ -43,6 +43,8 @@ export function useCustomAudio(options: UseCustomAudioOptions): CustomAudioRetur
   const [error, setError] = useState<string | null>(null);
   const audioSourceRef = useRef<AudioSource | null>(null);
   const currentAudioDataRef = useRef<Uint8Array | null>(null);
+  // CRITICAL: Use state for source so React re-renders when it changes
+  const [source, setSource] = useState<AudioSource | null>(null);
 
   const isActive = status === 'active';
 
@@ -60,6 +62,8 @@ export function useCustomAudio(options: UseCustomAudioOptions): CustomAudioRetur
     };
 
     audioSourceRef.current = audioSource;
+    // CRITICAL: Set source state to trigger React re-render
+    setSource(audioSource);
 
     // Listen for audio data from provider
     const unsubscribeData = provider.onAudioData((data: Uint8Array) => {
@@ -79,8 +83,10 @@ export function useCustomAudio(options: UseCustomAudioOptions): CustomAudioRetur
       unsubscribeData?.();
       unsubscribeError?.();
       currentAudioDataRef.current = null;
+      // Clear source when cleaning up
+      setSource(null);
     };
-  }, [provider, status]);
+  }, [provider, status, externalStatus]);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -89,7 +95,7 @@ export function useCustomAudio(options: UseCustomAudioOptions): CustomAudioRetur
   return {
     status,
     isActive,
-    source: audioSourceRef.current,
+    source, // Return state instead of ref for reactivity
     error,
     deviceId,
     clearError,

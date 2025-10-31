@@ -58,6 +58,8 @@ function AppContent() {
   const desktopAudioData = useCustomAudio({
     provider: electronProvider,
     deviceId: 'default',
+    // CRITICAL: Pass status from control hook to data hook so isActive() works correctly
+    status: desktopAudioControl.status,
   });
 
   // Select the appropriate hooks based on source type
