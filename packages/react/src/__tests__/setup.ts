@@ -259,21 +259,36 @@ if (typeof SharedArrayBuffer === 'undefined') {
 // RESIZE OBSERVER MOCK
 // ============================================================================
 
-globalObj.ResizeObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Mock ResizeObserver as a proper ES6 class for Vitest 4.0.5+
+class MockResizeObserver {
+  private _cb: ResizeObserverCallback;
+  constructor(cb: ResizeObserverCallback) {
+    this._cb = cb;
+  }
+  observe(_target?: Element): void {}
+  unobserve(_target?: Element): void {}
+  disconnect(): void {}
+}
+globalObj.ResizeObserver = MockResizeObserver;
 
 // ============================================================================
 // INTERSECTION OBSERVER MOCK
 // ============================================================================
 
-globalObj.IntersectionObserver = vi.fn().mockImplementation(() => ({
-  observe: vi.fn(),
-  unobserve: vi.fn(),
-  disconnect: vi.fn(),
-}));
+// Mock IntersectionObserver as a proper ES6 class for Vitest 4.0.5+
+class MockIntersectionObserver {
+  private _cb: IntersectionObserverCallback;
+  constructor(cb: IntersectionObserverCallback) {
+    this._cb = cb;
+  }
+  observe(_target?: Element): void {}
+  unobserve(_target?: Element): void {}
+  disconnect(): void {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+}
+globalObj.IntersectionObserver = MockIntersectionObserver;
 
 // ============================================================================
 // CONSOLE MOCKS (for cleaner test output)
